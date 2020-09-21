@@ -3,19 +3,56 @@
 #include <ctype.h>
 #include <string.h>
 
-enum token{delimiter, word, integer, decimal, octal, hexadecimal, floating, C_op, left_brack, right_brack};
+
+//TODO create header for all definitions
+enum token{
+	NONE,
+	delimiter,
+	word,
+	decimal,
+	octal,
+	hexadecimal,
+	floating,
+	leftparanthese,
+	rightparanthese,
+	leftbrace,
+	rightbrace,
+	structmember,
+	structpointer,
+	address,
+	minus,
+	negate,
+	complement,
+	increment,
+	decrement,
+	multiply,
+	divide,
+	modulus,
+	add,
+	shiftright,
+	shiftleft,
+	lessthan,
+	greaterthan,
+	leq,
+	geq,
+	equals,
+	notequals,
+	bitand,
+	bitxor,
+	bitor,
+	logicand,
+	logicor
+	};
 
 const char *token_type[] = {
 	"delimiter",
 	"word",
-	"integer",
 	"decimal",
 	"octal",
 	"hexadecimal",
 	"floating",
-	"C_op",
-	"left bracket",
-	"right bracket"
+	"leftbrace",
+	"rightbrace"
 };
 
 struct t_index{//Contains data of where in string token is
@@ -23,24 +60,37 @@ struct t_index{//Contains data of where in string token is
 	char* value;
 };
 
-enum token getType(char* input, int start){//will return the token type from current index
-	if(input[start] == ' ' || input[start] == 92) //92 is backslash '\'
+
+int isoctal(char c){//returns if char is octal or not (0-7)
+	if(c>='0' && c<='7'){
+		return 1;
+	}
+	return 0;
+}
+
+//TODO, can decimal,hex,octal, be only 1 character long? ex. '3', '0x', '0', ...\
+//TODO, check for pointer positions when looking ahead in getType()
+enum token getType(char* input, int start, enum token currentType){//will return the token type from current index, order of if statements is also important to logic
+	if(isspace(input[start])){ //check for whitespace delimiter
 		return delimiter;
-	if(isalpha(input[start]))
+	}else if((input[start]=='0' && tolower(input[start+1])=='x' && isxdigit(input[start+2])) || (isxdigit(input[start]) && currentType==hexadecimal)){//returns if current char is hexadecimal
+		return hexadecimal;
+	}else if((isalpha(input[start]) && isalnum(input[start+1])) || (isalnum(input[start] && currentType==word))){//returns if current char is part of a word
 		return word;
-	if(isdigit(input[start]))
-		return integer;
-	if(input[start] == '[')
-		return left_brack;
-	if(input[start] == ']')
-		return right_brack;
+	}else if((input[start]=='0' && isoctal(input[start+1])) || (isoctal(input[start]) && currentType==octal)){//returns if current type is part of octal
+		return octal;
+	}else if(isdigit(input[start]) && (input[start] != '0' || currentType==decimal)){ //returns if current char is part of a decimal integer
+		return decimal;
+	}
+	return -1;
+
 }
 
 void printOutput(char* input, int start, int end) {
-	if(getType(input, start) == 0 || start > strlen(input)) {
+	if(getType(input, start,NONE) == 0 || start > strlen(input)) {
 		return;
 	}
-	printf("%s: ", token_type[getType(input, start)]); 
+	printf("%s: ", token_type[getType(input, start,NONE)]); 
 	for(int i = start; i < end; i++) {
 		printf("%c", input[i]);
 	}
@@ -53,16 +103,16 @@ void tokenize(char* input) {
 	int end = 0;
 	printf("length of string: %d\n\n", length);
 	for(int i = 0; input[i]!='\0'; i++) {
-		if(getType(input, i) == 0) {
+		if(getType(input, i,NONE) == 0) {
 			if(input[i + 1] == 't' || input[i + 1] == 'v' || input[i + 1] == 'f' || input[i + 1] == 'n' || input[i + 1] == 'r') {
 				i++;
 			} else {
 				start = i + 1;
 			}
 		} else {
-			int currentValue = getType(input, start);
+			int currentValue = getType(input, start,NONE);
 			for(int j = start; j < length; j++) {
-				if(getType(input, j) == currentValue)
+				if(getType(input, j,NONE) == currentValue)
 					end = j + 1;
 				else
 					break;
@@ -75,7 +125,10 @@ void tokenize(char* input) {
 }
 
 int main(int argc, char *argv[]) {
-	tokenize(argv[1]);
+	//tokenize(argv[1]);
+	printf("%d\n",isoctal('f'));
+
+	printf("%d\n",getType(argv[1],0,NONE));
 	printf("\n");
 	return 0;
 }
