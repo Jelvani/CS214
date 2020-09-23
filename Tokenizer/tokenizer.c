@@ -164,96 +164,71 @@ int isoctal(char c){//returns if char is octal or not (0-7)
 	return 0;
 }
 
-//TODO, can decimal,hex,octal, be only 1 character long? ex. '3', '0x', '0', ...\
-//TODO, check for pointer positions when looking ahead in getType()
-enum token getType(char* input, int start, enum token currentType){//will return the token type from current index, order of if statements is also important to logic
-	if(isspace(input[start])){ //check for whitespace delimiter
-		return DELIMETER;
-	}else if((input[start]=='0' && tolower(input[start+1])=='x' && isxdigit(input[start+2])) || (isxdigit(input[start]) && currentType==HEX)){//returns if current char is hexadecimal
-		return HEX;
-	}else if((isalpha(input[start]) && isalnum(input[start+1])) || (isalnum(input[start] && currentType==WORD))){//returns if current char is part of a word
-		return WORD;
-	}else if((input[start]=='0' && isoctal(input[start+1])) || (isoctal(input[start]) && currentType==OCTAL)){//returns if current type is part of octal
-		return OCTAL;
-	}else if(isdigit(input[start])){ //returns if current char is part of a decimal integer
-		return DECIMAL;
-	}else if(input[start] == ('.' || 'e' || '-') && currentType == (DECIMAL || FLOAT)){ //returns floating point
-		return FLOAT;
-	}else{//here the c operators begin
-		int i = 0;
-		for(i = LEFTPARENTHESIS; i<=MULTIPLYOPERATOR; i++){ 
-			int length = strlen(c_op_vals[i-6]);
-			if(strncmp(input, c_op_vals[i-6],length)==0){
-				return i;
+int findWord(char *input, int start){
+	int length = 0;
+	while(isalnum(input[start+length])){
+		length++;
+	}
+	return length;
+}
+
+int findDecimal(char *input, int start){
+	int length = 0;
+	while(isdigit(input[start+length])){
+		length++;
+	}
+	return length;
+}
+
+int findOctal(char *input, int start){
+	int length = 0;
+	while(isoctal(input[start+length])){
+		length++;
+	}
+	return length;
+}
+
+int findHex(char *input, int start){
+	int length = 0;
+	while(isxdigit(input[start+length])){
+		length++;
+	}
+	return length;
+}
+
+int findFloat(char *input, int start){
+	int length = 0;
+	while((isdigit(input[start+length])) || (input[start+length] == '.') || (strncmp(&input[start+length],"e+",2) == 0) || (strncmp(&input[start]+length,"e-",2) == 0)){
+		
+		if((strncmp(&input[start+length],"e+",2) == 0) || (strncmp(&input[start]+length,"e-",2) == 0)){
+			length+=2;
+		}else{
+			length++;
+		}
+	}
+	return length;
+}
+
+enum token findCop(char *input, int start){
+	int i = 0;
+	int previous = -1;//stores longest length operator
+	int chosen = -1;
+	for(i = LEFTPARENTHESIS; i<=MULTIPLYOPERATOR; i++){ 
+		int length = strlen(c_op_vals[i-6]);
+		if(strncmp(&input[start], c_op_vals[i-6],length)==0){
+			if(previous<length){
+				previous = length;
+				chosen = i;
 			}
 		}
-
-	/*
-		switch(input[start]){
-			case '(':
-				return LEFTPARENTHESIS;
-			case ')':
-				return RIGHTPARENTHESIS;
-			case '[':
-				return LEFTBRACKET;
-			case ']':
-				return RIGHTPARENTHESIS:
-			case '.':
-				return STRUCTMEMBER;
-			case '-':
-				switch(input[start+1]){//seoncd switch for 2 character c ops starting with '-'
-					case '>':
-						return STRUCTPOINTER;
-					case '-':
-						return DECREMENT;
-					case '=':
-						return MINUSEQUALS;
-					default:
-						return MINUSOPERATOR;
-				}
-			case 's':
-				if(strncmp(input[start],"sizeof",6)==0){
-					return SIZEOF;
-				}
-				break;
-			case ',':
-				return COMMA;
-			case '!':
-				return NEGATE;
-			case '~':
-				return 1SCOMPLEMENT;
-			case '>':
-				if(strncmp(input[start],">>",2)==0){
-					return SHIFTRIGHT;
-				}else if(strncmp(input[start],">=",2)==0){
-					return GREATERTHANEQUAL;
-				}else if(strncmp(input[start],">>=",3)==0){
-					return SHIFTRIGHTEQUALS;
-				}else{
-					return GREATERTHANTEST;
-				}
-			case '<':
-				if(strncmp(input[start],"<<",2)==0){
-					return SHIFTLEFT;
-				}else if(strncmp(input[start],"<=",2)==0){
-					return LESSTHANEQUAL;
-				}else if(strncmp(input[start],"<<=",3)==0){
-					return SHIFTLEFTEQUALS;
-				}else{
-					return LESSTHANTEST;
-				}
-			case '^':
-				return BITWISEXOR;
-			case ''
-		}*/
 	}
-	return -1;
-
+	return chosen;
 }
 
 void printDEBUG(enum token type){
 	printf("%s\n",token_type[type]);
 }
+
 void printOutput(char* input, int start, int end) {
 	/*
 	if(getType(input, start,NONE) == 0 || start > strlen(input)) {
@@ -267,6 +242,53 @@ void printOutput(char* input, int start, int end) {
 }
 
 void tokenize(char* input) {
+
+	int i =0;
+	int start = 0;
+	int end = 1;
+	int length = strlen(input);
+	enum token type = 0;
+	int tokenLength;
+	while(start < length){
+		if(isspace(input[start])){
+			start++;
+			continue;
+		}else if(findCop(input,start)!=-1){
+			type = findCop(input,start);
+			tokenLength = strlen(c_op_vals[type-6]);
+		}else if(isalpha(input[start])){
+			type = WORD;
+			tokenLength = findWord(input,start);	
+		}else{
+			if(tolower(input[start+1])=='x'){
+				type = HEX;
+				tokenLength = findHex(input,start+2)+2;
+			}else{//choose max length from octal, deicimal, or float
+				int t1 = findOctal(input,start);
+				int t2 = findDecimal(input,start);
+				int t3 = findFloat(input,start);
+				if(t1>=t2 && t1>=t3 && t1!=1 && input[start] == '0'){
+					type = OCTAL;
+					tokenLength = t1;
+				}else if(t2>=t3 && t2>=t3){
+					type = DECIMAL;
+					tokenLength = t2;
+				}else{
+					type = FLOAT;
+					tokenLength = t3;
+				}
+			}
+
+		}
+
+		printDEBUG(type);
+		//printf("start: %d\n",start);
+		start+=tokenLength;
+		//printf("end: %d\n",start);
+	}
+
+
+
 	/*
 	int length = strlen(input);
 	int start = 0; //first token must have index 0
@@ -297,7 +319,7 @@ void tokenize(char* input) {
 
 int main(int argc, char *argv[]) {
 	//tokenize(argv[1]);
-	printDEBUG(getType(argv[1],0,-1));
+	tokenize(argv[1]);
 	
 	return 0;
 }
