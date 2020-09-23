@@ -199,7 +199,6 @@ int findHex(char *input, int start){
 int findFloat(char *input, int start){
 	int length = 0;
 	while((isdigit(input[start+length])) || (input[start+length] == '.') || (strncmp(&input[start+length],"e+",2) == 0) || (strncmp(&input[start]+length,"e-",2) == 0)){
-		
 		if((strncmp(&input[start+length],"e+",2) == 0) || (strncmp(&input[start]+length,"e-",2) == 0)){
 			length+=2;
 		}else{
@@ -229,20 +228,13 @@ void printDEBUG(enum token type){
 	printf("%s\n",token_type[type]);
 }
 
-void printOutput(char* input, int start, int end) {
-	/*
-	if(getType(input, start,NONE) == 0 || start > strlen(input)) {
-		return;
-	}
-	printf("%s: ", token_type[getType(input, start,NONE)]); 
+void printWord(char* input, int start, int end) {
 	for(int i = start; i < end; i++) {
 		printf("%c", input[i]);
 	}
-	printf("\n");*/
 }
 
 void tokenize(char* input) {
-
 	int i =0;
 	int start = 0;
 	int end = 1;
@@ -281,45 +273,15 @@ void tokenize(char* input) {
 
 		}
 
-		printDEBUG(type);
-		//printf("start: %d\n",start);
+		printf("%s: ", token_type[type]);
+		printWord(input, start, start + tokenLength);
+		printf("\n");
+		//printDEBUG(type);
 		start+=tokenLength;
-		//printf("end: %d\n",start);
 	}
-
-
-
-	/*
-	int length = strlen(input);
-	int start = 0; //first token must have index 0
-	int end = 0;
-	printf("length of string: %d\n\n", length);
-	for(int i = 0; input[i]!='\0'; i++) {
-		if(getType(input, i,NONE) == 0) {
-			if(input[i + 1] == 't' || input[i + 1] == 'v' || input[i + 1] == 'f' || input[i + 1] == 'n' || input[i + 1] == 'r') {
-				i++;
-			} else {
-				start = i + 1;
-			}
-		} else {
-			int currentValue = getType(input, start,NONE);
-			for(int j = start; j < length; j++) {
-				if(getType(input, j,NONE) == currentValue)
-					end = j + 1;
-				else
-					break;
-			}
-			printOutput(input, start, end);
-			goto end;
-		}
-		end: start = end;
-	}
-	*/
 }
 
 int main(int argc, char *argv[]) {
-	//tokenize(argv[1]);
 	tokenize(argv[1]);
-	
 	return 0;
 }
