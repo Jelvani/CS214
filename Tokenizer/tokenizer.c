@@ -2,158 +2,12 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include "tokenizer.h"
 
-
-//TODO create header for all definitions
-enum token{
-	DELIMETER,
-	WORD,
-	DECIMAL,
-	OCTAL,
-	HEX,
-	FLOAT,
-	LEFTPARENTHESIS,//(
-	RIGHTPARENTHESIS,//)
-	LEFTBRACKET,//[
-	RIGHTBRACKET,//]
-	STRUCTMEMBER,//.
-	STRUCTPOINTER,//->
-	SIZEOF,//sizeof
-	COMMA,//,
-	NEGATE,//!
-	ONESCOMPLEMENT,//~
-	SHIFTRIGHT,//>>
-	SHIFTLEFT,//<<
-	BITWISEXOR,//^
-	BITWISEOR,//|
-	INCREMENT,//++
-	DECREMENT,//--
-	ADDITION,//+
-	DIVISION,///
-	LOGICALOR,//||
-	LOGICALAND,//&&
-	CONDITIONALTRUE,//?
-	CONDITIONALFALSE,//:
-	EQUALITYTEST,//==
-	INEQUALITYTEST,//!=
-	LESSTHANTEST,//<
-	GREATERTHANTEST,//>
-	LESSTHANEQUAL,//<=
-	GREATERTHANEQUAL,//>=
-	ASSIGNMENT,//=
-	PLUSEQUALS,//+=
-	MINUSEQUALS,//-=
-	TIMESEQUALS,//*=
-	DIVIDEEQUALS,///=
-	MODEQUALS,//%=
-	SHIFTRIGHTEQUALS,//>>=
-	SHIFTLEFTEQUALS,//<<=
-	BITWISEANDEQUALS,//&=
-	BITWISEXOREQUALS,//^=
-	BITWISEOREQUALS,//|=
-	ADDRESSOPERATOR,//&
-	MINUSOPERATOR,//-
-	MULTIPLYOPERATOR,//*
-	};
-
-const char *c_op_vals[] = {
-	"(",
-	")",
-	"[",
-	"]",
-	".",
-	"->",
-	"sizeof",
-	",",
-	"!",
-	"~",
-	">>",
-	"<<",
-	"^",
-	"|",
-	"++",
-	"--",
-	"+",
-	"/",
-	"||",
-	"&&",
-	"?",
-	":",
-	"==",
-	"!=",
-	"<",
-	">",
-	"<=",
-	">=",
-	"=",
-	"+=",
-	"-=",
-	"*=",
-	"/=",
-	"%=",
-	">>=",
-	"<<=",
-	"&=",
-	"^=",
-	"|=",
-	"&",
-	"-",
-	"*",
-};
-const char *token_type[] = {
-	"delimiter",
-	"word",
-	"decimal integer",
-	"octal integer",
-	"hexadecimal integer",
-	"float",
-	"left parenthesis",
-	"right parenthesis",
-	"left bracket",
-	"right bracket",
-	"structure member",
-	"structure pointer",
-	"sizeof",
-	"comma",
-	"negate",
-	"1s complement",
-	"shift right",
-	"shift left",
-	"bitwise XOR",
-	"bitwise OR",
-	"increment",
-	"decrement",
-	"addition",
-	"division",
-	"logical OR",
-	"logical AND",
-	"conditional true",
-	"conditional false",
-	"equality test",
-	"inequality test",
-	"less than test",
-	"greater than test",
-	"less than or equal test",
-	"greater than or equal test",
-	"assignment",
-	"plus equals",
-	"minus equals",
-	"times equals",
-	"divide equals",
-	"mod equals",
-	"shift right equals",
-	"shift left equals",
-	"bitwise AND equals",
-	"bitwise XOR equals",
-	"bitwise OR equals",
-	"AND/address operator",
-	"minus/subtract operator",
-	"multiply/dereference operator"
-};
-
-struct t_index{//Contains data of where in string token is
+struct tokens{//Contains data of where in string token is
 	enum token type;
 	char* value;
+	struct tokens* next;
 };
 
 
@@ -164,7 +18,7 @@ int isoctal(char c){//returns if char is octal or not (0-7)
 	return 0;
 }
 
-int findWord(char *input, int start){
+int findWord(char *input, int start){//returns num of chars in detected word token
 	int length = 0;
 	while(isalnum(input[start+length])){
 		length++;
@@ -172,7 +26,7 @@ int findWord(char *input, int start){
 	return length;
 }
 
-int findDecimal(char *input, int start){
+int findDecimal(char *input, int start){//returns num of chars in detected decimal token
 	int length = 0;
 	while(isdigit(input[start+length])){
 		length++;
@@ -180,7 +34,7 @@ int findDecimal(char *input, int start){
 	return length;
 }
 
-int findOctal(char *input, int start){
+int findOctal(char *input, int start){//retursn num of chars in detected octal token
 	int length = 0;
 	while(isoctal(input[start+length])){
 		length++;
@@ -188,7 +42,7 @@ int findOctal(char *input, int start){
 	return length;
 }
 
-int findHex(char *input, int start){
+int findHex(char *input, int start){//returns num of chars in detected hex token
 	int length = 0;
 	while(isxdigit(input[start+length])){
 		length++;
@@ -196,7 +50,7 @@ int findHex(char *input, int start){
 	return length;
 }
 
-int findFloat(char *input, int start){
+int findFloat(char *input, int start){//find num of chars in detected float token
 	int length = 0;
 	while((isdigit(input[start+length])) || (input[start+length] == '.') || (strncmp(&input[start+length],"e+",2) == 0) || (strncmp(&input[start]+length,"e-",2) == 0)){
 		if((strncmp(&input[start+length],"e+",2) == 0) || (strncmp(&input[start]+length,"e-",2) == 0)){
@@ -208,7 +62,7 @@ int findFloat(char *input, int start){
 	return length;
 }
 
-enum token findCop(char *input, int start){
+enum token findCop(char *input, int start){//returns type C operator detected, or -1 if none
 	int i = 0;
 	int previous = -1;//stores longest length operator
 	int chosen = -1;
@@ -234,6 +88,10 @@ void printWord(char* input, int start, int end) {
 	}
 }
 
+
+/*
+The tokenize functon will take a pointer to a string and print out all detected tokens and type
+*/
 void tokenize(char* input) {
 	int i =0;
 	int start = 0;
@@ -252,7 +110,7 @@ void tokenize(char* input) {
 			type = WORD;
 			tokenLength = findWord(input,start);	
 		}else{
-			if(tolower(input[start+1])=='x'){
+			if(tolower(input[start+1])=='x' && findHex(input,start+2)>0){
 				type = HEX;
 				tokenLength = findHex(input,start+2)+2;
 			}else{//choose max length from octal, deicimal, or float
@@ -282,6 +140,10 @@ void tokenize(char* input) {
 }
 
 int main(int argc, char *argv[]) {
+	if(argc<2){
+		printf("Please pass 1 argument to this program\n");
+		return EXIT_FAILURE;
+	}
 	tokenize(argv[1]);
-	return 0;
+	return EXIT_SUCCESS;
 }
