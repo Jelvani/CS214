@@ -52,13 +52,36 @@ int findHex(char *input, int start){//returns num of chars in detected hex token
 
 int findFloat(char *input, int start){//find num of chars in detected float token
 	int length = 0;
-	while((isdigit(input[start+length])) || (input[start+length] == '.') || (strncmp(&input[start+length],"e+",2) == 0) || (strncmp(&input[start]+length,"e-",2) == 0)){
-		if((strncmp(&input[start+length],"e+",2) == 0) || (strncmp(&input[start]+length,"e-",2) == 0)){
-			length+=2;
-		}else{
+	int scnot = 0;
+		while(isdigit(input[start+length])){
 			length++;
 		}
-	}
+		if(input[start+length]=='.'){//if detect dot, find all decimals again
+			if(isdigit(input[start+length+1])){
+				length++;
+				while(isdigit(input[start+length])){
+					length++;
+				}
+			}else{
+				return 0;
+			}
+		}else{
+			return 0;
+		}
+
+		if(tolower(input[start+length])=='e'){
+			scnot++;
+			if(input[start+length+scnot] == '-' || input[start+length+scnot] == '+' ){
+				scnot++;
+			}
+		}
+		if(isdigit(input[start+length+scnot])){
+			length+=scnot;
+			while(isdigit(input[start+length])){
+				length++;
+			}
+		}
+
 	return length;
 }
 
