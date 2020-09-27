@@ -121,6 +121,31 @@ void tokenize(char* input) {
 	int tokenLength = 0;
 	int tempLength = 0;
 	while(start < length){
+
+
+		if(strncmp(&input[start],"/*",2)==0){//for multiline c comments
+			start+=2;
+			while(strncmp(&input[start],"*/",2)!=0){
+				start++;
+			}
+			start+=2;
+			continue;
+		}
+		if(strncmp(&input[start],"//",2)==0){//for singleline c comments
+			start+=2;
+			while(start < length){
+				if(input[start]=='\n'){
+					start++;
+					break;
+				}
+				start++;
+
+			}
+			continue;
+		}
+
+		
+
 		if(isspace(input[start])){
 			start++;
 			continue;
@@ -169,11 +194,11 @@ void tokenize(char* input) {
 		printf("%s: ", token_type[type]);
 		printWord(input, start, start + tokenLength);
 		printf("\n");
-		//printDEBUG(type);
 		start+=tokenLength;
 		tokenLength=0;//reset length for finding largest token
 		type=0;
 	}
+
 }
 
 int main(int argc, char *argv[]) {
