@@ -4,13 +4,6 @@
 #include <string.h>
 #include "tokenizer.h"
 
-struct tokens{//Contains data of where in string token is
-	enum token type;
-	char* value;
-	struct tokens* next;
-};
-
-
 int isoctal(char c){//returns if char is octal or not (0-7)
 	if(c>='0' && c<='7'){
 		return 1;
@@ -55,6 +48,9 @@ int findFloat(char *input, int start){//find num of chars in detected float toke
 	int scnot = 0;
 		while(isdigit(input[start+length])){
 			length++;
+		}
+		if(length==0){
+			return length;
 		}
 		if(input[start+length]=='.'){//if detect dot, find all decimals again
 			if(isdigit(input[start+length+1])){
@@ -121,37 +117,53 @@ void tokenize(char* input) {
 	int end = 1;
 	int length = strlen(input);
 	enum token type = 0;
-	int tokenLength;
+	enum token tempType = 0;
+	int tokenLength = 0;
+	int tempLength = 0;
 	while(start < length){
 		if(isspace(input[start])){
 			start++;
 			continue;
-		}else if(findCop(input,start)!=-1){
-			type = findCop(input,start);
-			tokenLength = strlen(c_op_vals[type-6]);
-		}else if(isalpha(input[start])){
-			type = WORD;
-			tokenLength = findWord(input,start);	
-		}else{
-			if(tolower(input[start+1])=='x' && findHex(input,start+2)>0){
-				type = HEX;
-				tokenLength = findHex(input,start+2)+2;
-			}else{//choose max length from octal, deicimal, or float
-				int t1 = findOctal(input,start);
-				int t2 = findDecimal(input,start);
-				int t3 = findFloat(input,start);
-				if(t1>=t2 && t1>=t3 && t1!=1 && input[start] == '0'){
-					type = OCTAL;
-					tokenLength = t1;
-				}else if(t2>=t3 && t2>=t3){
-					type = DECIMAL;
-					tokenLength = t2;
-				}else{
-					type = FLOAT;
-					tokenLength = t3;
-				}
+		}if(findCop(input,start)!=-1){//if found c op, increment tokelnegth
+			tempType = findCop(input,start);
+			tempLength = strlen(c_op_vals[tempType-6]);
+			if(tempLength>tokenLength){
+				type=tempType;
+				tokenLength=tempLength;
 			}
-
+		}if(isalpha(input[start])){
+			tempType = WORD;
+			tempLength = findWord(input,start);
+			if(tempLength>tokenLength){
+				type=tempType;
+				tokenLength=tempLength;
+			}
+		}
+		if(tolower(input[start+1])=='x' && findHex(input,start+2)>0){
+			tempType = HEX;
+			tempLength = findHex(input,start+2)+2;
+			if(tempLength>tokenLength){
+				type=tempType;
+				tokenLength=tempLength;
+			}
+		}else{//choose max length from octal, deicimal, or float
+			int t1 = findOctal(input,start);
+			int t2 = findDecimal(input,start);
+			int t3 = findFloat(input,start);
+			if(t1>=t2 && t1>=t3 && t1!=1 && input[start] == '0'){
+				tempType = OCTAL;
+				tempLength = t1;
+			}else if(t2>=t3 && t2>=t3){
+				tempType = DECIMAL;
+				tempLength = t2;
+			}else{
+				tempType = FLOAT;
+				tempLength = t3;
+				}
+			if(tempLength>tokenLength){
+				type=tempType;
+				tokenLength=tempLength;
+			}
 		}
 
 		printf("%s: ", token_type[type]);
@@ -159,6 +171,8 @@ void tokenize(char* input) {
 		printf("\n");
 		//printDEBUG(type);
 		start+=tokenLength;
+		tokenLength=0;//reset length for finding largest token
+		type=0;
 	}
 }
 
