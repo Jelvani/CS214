@@ -191,6 +191,12 @@ void tokenize(char* input) {
 			}
 		}
 
+		if(tokenLength==0){//if encountered unkown character
+			start++;
+			continue;
+
+		}
+
 		printf("%s: ", token_type[type]);
 		printWord(input, start, start + tokenLength);
 		printf("\n");
