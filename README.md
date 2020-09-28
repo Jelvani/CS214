@@ -10,7 +10,7 @@ gcc -o tokenizer tokenizer.c
 
 Alternatively, you can just use `Make` to compile the program through the included makefile:
 ```sh
-Make
+make
 ```
 You can run the program by:
 ```sh
