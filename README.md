@@ -10,7 +10,7 @@ gcc -o tokenizer tokenizer.c
 
 Alternatively, you can just use `Make` to compile the program through the included makefile:
 ```sh
-Make
+make
 ```
 You can run the program by:
 ```sh
@@ -28,7 +28,7 @@ Decimal Integer  |  123|
 Octal Integer | 07345
 Hexadecimal Integer | 0xa367f
 Floating Point | 2.12444e+13
-C Operator | `(`, `)`, `[`, `]`, `.`, `->`, `sizeof`,<br>`,`, `!`, `~`, `>>`, `<<`, `^`, `|`, `++`, `--`,<br>`+`, `/`, `||`, `&&`, `?`, `:`, `==`, `!=`,<br>`<`, `>`, `<=`, `>=`, `=`, `+=`, `-=`, `*=`,<br>`/=`, `%=`, `>>=`, `<<=`, `&=`, `^=`, `|=`, `&`, `=`, `*`
+C Operator | `(`, `)`, `[`, `]`, `.`, `->`, `sizeof`, `,`, `!`, `~`, `>>`, `<<`, `^`, `|`, `++`, `--`, `+`, `/`, `||`, `&&`, `?`, `:`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `>>=`, `<<=`, `&=`, `^=`, `|=`, `&`, `=`, `*`
 
 
 

@@ -4,14 +4,18 @@
 #include <string.h>
 #include "tokenizer.h"
 
-int isoctal(char c){//returns if char is octal or not (0-7)
+int isoctal(char c){//returns 1 if char is octal, else 0
 	if(c>='0' && c<='7'){
 		return 1;
 	}
 	return 0;
 }
 
-int findWord(char *input, int start){//returns num of chars in detected word token
+
+/*
+The following 'findX' functions take an input of the char pointer to the begining of the inputted string, and the current index
+*/
+int findWord(char *input, int start){//returns number of chars in detected word token
 	int length = 0;
 	while(isalnum(input[start+length])){
 		length++;
@@ -19,7 +23,7 @@ int findWord(char *input, int start){//returns num of chars in detected word tok
 	return length;
 }
 
-int findDecimal(char *input, int start){//returns num of chars in detected decimal token
+int findDecimal(char *input, int start){//returns number of chars in detected decimal token
 	int length = 0;
 	while(isdigit(input[start+length])){
 		length++;
@@ -27,7 +31,7 @@ int findDecimal(char *input, int start){//returns num of chars in detected decim
 	return length;
 }
 
-int findOctal(char *input, int start){//retursn num of chars in detected octal token
+int findOctal(char *input, int start){//retursn number of chars in detected octal token
 	int length = 0;
 	while(isoctal(input[start+length])){
 		length++;
@@ -35,7 +39,7 @@ int findOctal(char *input, int start){//retursn num of chars in detected octal t
 	return length;
 }
 
-int findHex(char *input, int start){//returns num of chars in detected hex token
+int findHex(char *input, int start){//returns number of chars in detected hexadecimal token
 	int length = 0;
 	while(isxdigit(input[start+length])){
 		length++;
@@ -43,7 +47,7 @@ int findHex(char *input, int start){//returns num of chars in detected hex token
 	return length;
 }
 
-int findFloat(char *input, int start){//find num of chars in detected float token
+int findFloat(char *input, int start){//returns the number of chars in detected float token
 	int length = 0;
 	int scnot = 0;
 		while(isdigit(input[start+length])){
@@ -81,11 +85,10 @@ int findFloat(char *input, int start){//find num of chars in detected float toke
 	return length;
 }
 
-enum token findCop(char *input, int start){//returns type C operator detected, or -1 if none
-	int i = 0;
+enum token findCop(char *input, int start){//returns the type of C operator detected, and if none are detcted, returns a -1
 	int previous = -1;//stores longest length operator
 	int chosen = -1;
-	for(i = LEFTPARENTHESIS; i<=MULTIPLYOPERATOR; i++){ 
+	for(int i = LEFTPARENTHESIS; i<=MULTIPLYOPERATOR; i++){ 
 		int length = strlen(c_op_vals[i-6]);
 		if(strncmp(&input[start], c_op_vals[i-6],length)==0){
 			if(previous<length){
@@ -97,11 +100,31 @@ enum token findCop(char *input, int start){//returns type C operator detected, o
 	return chosen;
 }
 
-void printDEBUG(enum token type){
+enum token findCkeyword(char* input, int start){
+	int previous = -1;//stores longest length operator
+	int chosen = -1;
+	for(int i = AUTO; i<= _IMAGINARY; i++){ 
+		int length = strlen(c_op_vals[i-6]);
+		if(strncmp(&input[start], c_op_vals[i-6],length)==0){
+			if(previous<length){
+				previous = length;
+				chosen = i;
+			}
+		}
+	}
+	return chosen;
+}
+
+void printDEBUG(enum token type){//ised for debugging purposes 
 	printf("%s\n",token_type[type]);
 }
 
-void printWord(char* input, int start, int end) {
+void printWord(char* input, int start, int end) {//prints a substring. input is the pointer to the begining of a string, and the starting and ending index to be printed. Functions returns on index out of bounds
+	int length = strlen(input);
+	if(start<0 || end>length){
+		return;
+	}
+
 	for(int i = start; i < end; i++) {
 		printf("%c", input[i]);
 	}
@@ -146,10 +169,19 @@ void tokenize(char* input) {
 
 		
 
-		if(isspace(input[start])){
+		if(isspace(input[start])){//on whitespace, ignore and restart
 			start++;
-			continue;
-		}if(findCop(input,start)!=-1){//if found c op, increment tokelnegth
+			continue;			
+		}
+		if(findCkeyword(input,start)!=-1){
+			tempType = findCkeyword(input,start);
+			tempLength = strlen(c_op_vals[tempType-6]);
+			if(tempLength>tokenLength){
+				type=tempType;
+				tokenLength=tempLength;
+			}
+		}
+		if(findCop(input,start)!=-1){//if found c op, increment tokelnegth
 			tempType = findCop(input,start);
 			tempLength = strlen(c_op_vals[tempType-6]);
 			if(tempLength>tokenLength){
@@ -191,7 +223,17 @@ void tokenize(char* input) {
 			}
 		}
 
-		printf("%s: ", token_type[type]);
+		if(tokenLength==0){//if encountered unkown character
+			start++;
+			continue;
+
+		}
+
+		if(type < AUTO){
+			printf("%s: ", token_type[type]);
+		}else{
+			printf("c keyword: ");
+		}
 		printWord(input, start, start + tokenLength);
 		printf("\n");
 		start+=tokenLength;
@@ -202,7 +244,7 @@ void tokenize(char* input) {
 }
 
 int main(int argc, char *argv[]) {
-	if(argc<2){
+	if(argc != 2){
 		printf("Please pass 1 argument to this program\n");
 		return EXIT_FAILURE;
 	}
