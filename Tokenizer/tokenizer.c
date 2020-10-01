@@ -86,10 +86,24 @@ int findFloat(char *input, int start){//returns the number of chars in detected 
 }
 
 enum token findCop(char *input, int start){//returns the type of C operator detected, and if none are detcted, returns a -1
-	int i = 0;
 	int previous = -1;//stores longest length operator
 	int chosen = -1;
-	for(i = LEFTPARENTHESIS; i<=MULTIPLYOPERATOR; i++){ 
+	for(int i = LEFTPARENTHESIS; i<=MULTIPLYOPERATOR; i++){ 
+		int length = strlen(c_op_vals[i-6]);
+		if(strncmp(&input[start], c_op_vals[i-6],length)==0){
+			if(previous<length){
+				previous = length;
+				chosen = i;
+			}
+		}
+	}
+	return chosen;
+}
+
+enum token findCkeyword(char* input, int start){
+	int previous = -1;//stores longest length operator
+	int chosen = -1;
+	for(int i = AUTO; i<= _IMAGINARY; i++){ 
 		int length = strlen(c_op_vals[i-6]);
 		if(strncmp(&input[start], c_op_vals[i-6],length)==0){
 			if(previous<length){
@@ -111,8 +125,7 @@ void printWord(char* input, int start, int end) {//prints a substring. input is 
 		return;
 	}
 
-	int i=0;
-	for(i = start; i < end; i++) {
+	for(int i = start; i < end; i++) {
 		printf("%c", input[i]);
 	}
 }
@@ -158,8 +171,17 @@ void tokenize(char* input) {
 
 		if(isspace(input[start])){//on whitespace, ignore and restart
 			start++;
-			continue;
-		}if(findCop(input,start)!=-1){//if found c op, increment tokelnegth
+			continue;			
+		}
+		if(findCkeyword(input,start)!=-1){
+			tempType = findCkeyword(input,start);
+			tempLength = strlen(c_op_vals[tempType-6]);
+			if(tempLength>tokenLength){
+				type=tempType;
+				tokenLength=tempLength;
+			}
+		}
+		if(findCop(input,start)!=-1){//if found c op, increment tokelnegth
 			tempType = findCop(input,start);
 			tempLength = strlen(c_op_vals[tempType-6]);
 			if(tempLength>tokenLength){
@@ -207,7 +229,11 @@ void tokenize(char* input) {
 
 		}
 
-		printf("%s: ", token_type[type]);
+		if(type < AUTO){
+			printf("%s: ", token_type[type]);
+		}else{
+			printf("c keyword: ");
+		}
 		printWord(input, start, start + tokenLength);
 		printf("\n");
 		start+=tokenLength;
@@ -218,7 +244,7 @@ void tokenize(char* input) {
 }
 
 int main(int argc, char *argv[]) {
-	if(argc<2){
+	if(argc != 2){
 		printf("Please pass 1 argument to this program\n");
 		return EXIT_FAILURE;
 	}
