@@ -218,4 +218,5 @@ const char *token_type[] = {
 	"AND/address operator",
 	"minus/subtract operator",
 	"multiply/dereference operator",
+	"single quotes",
 };

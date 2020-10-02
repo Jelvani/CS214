@@ -69,13 +69,13 @@ int findFloat(char *input, int start){//returns the number of chars in detected 
 			return 0;
 		}
 
-		if(tolower(input[start+length])=='e'){
+		if(tolower(input[start+length])=='e'){//checks for exponent in scientific notation
 			scnot++;
 			if(input[start+length+scnot] == '-' || input[start+length+scnot] == '+' ){
 				scnot++;
 			}
 		}
-		if(isdigit(input[start+length+scnot])){
+		if(isdigit(input[start+length+scnot])){//these are the decimals for the exponent
 			length+=scnot;
 			while(isdigit(input[start+length])){
 				length++;
@@ -115,7 +115,28 @@ enum token findCkeyword(char* input, int start){
 	return chosen;
 }
 
-void printDEBUG(enum token type){//ised for debugging purposes 
+int findQuotes(char* input, int start){//retusn the index of the closing quote, and -1 if no quote detected, -2 if no closing quote detected
+
+	char quote;
+	int end = start;
+	if(input[start]=='\''){
+		quote = '\'';
+	}else if(input[start]=='\"'){
+		quote='\"';
+	}else{
+		return -1;//no quote detected in first char
+	}
+
+	while(end<strlen(input)){
+		end++;
+		if(input[end]==quote) return (end-start+1);
+	}
+	return -2;//this means no closing quotes detected
+
+}
+
+
+void printDEBUG(enum token type){//used for debugging purposes 
 	printf("%s\n",token_type[type]);
 }
 
@@ -129,6 +150,7 @@ void printWord(char* input, int start, int end) {//prints a substring. input is 
 		printf("%c", input[i]);
 	}
 }
+
 
 
 /*
@@ -167,7 +189,23 @@ void tokenize(char* input) {
 			continue;
 		}
 
-		
+		if(findQuotes(input,start)!=-1){//finds double and single quote pairs
+
+			tokenLength = findQuotes(input,start);
+			if(tokenLength==-2){
+				printf("No closing quotes detected in string! Please modify string and retry.\n");
+				break;
+			}
+			printf("quotes: ");
+			printWord(input, start, start + tokenLength);
+			printf("\n");
+			start+=tokenLength;
+			tokenLength=0;//reset length for finding largest token
+			type=0;
+			continue;
+
+		}
+
 
 		if(isspace(input[start])){//on whitespace, ignore and restart
 			start++;
@@ -223,7 +261,7 @@ void tokenize(char* input) {
 			}
 		}
 
-		if(tokenLength==0){//if encountered unkown character
+		if(tokenLength==0){//if encountered unkown character, ignore and continue
 			start++;
 			continue;
 
@@ -249,5 +287,6 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 	tokenize(argv[1]);
+	printf("Tokenizer has finished\n");
 	return EXIT_SUCCESS;
 }
