@@ -1,0 +1,26 @@
+BASE CASES
+
+	INPUT: "abc123 abc 123 123.1"
+	EXPECTED OUTPUT:
+		word: abc123
+		word: abc
+		decimal integer: 123
+		float: 123.1
+
+
+	INPUT: "0x4356abdc 0777 [] "
+	EXPECTED OUTPUT:
+		hexadecimal integer: 0x4356abdc
+		octal integer: 0777
+		left bracket: [
+		right bracket: ]
+
+	INPUT: “array[xyz ] += pi 3.14159e-10”
+	EXPECTED OUTPUT:
+		word: array
+		left bracket: [
+		word: xyz
+		right bracket: ]
+		plus equals: +=
+		word: pi
+		float: 3.14159e-10
