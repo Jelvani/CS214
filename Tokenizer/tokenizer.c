@@ -69,13 +69,13 @@ int findFloat(char *input, int start){//returns the number of chars in detected 
 			return 0;
 		}
 
-		if(tolower(input[start+length])=='e'){
+		if(tolower(input[start+length])=='e'){//checks for exponent in scientific notation
 			scnot++;
 			if(input[start+length+scnot] == '-' || input[start+length+scnot] == '+' ){
 				scnot++;
 			}
 		}
-		if(isdigit(input[start+length+scnot])){
+		if(isdigit(input[start+length+scnot])){//these are the decimals for the exponent
 			length+=scnot;
 			while(isdigit(input[start+length])){
 				length++;
@@ -86,10 +86,9 @@ int findFloat(char *input, int start){//returns the number of chars in detected 
 }
 
 enum token findCop(char *input, int start){//returns the type of C operator detected, and if none are detcted, returns a -1
-	int i = 0;
 	int previous = -1;//stores longest length operator
 	int chosen = -1;
-	for(i = LEFTPARENTHESIS; i<=MULTIPLYOPERATOR; i++){ 
+	for(int i = LEFTPARENTHESIS; i<=MULTIPLYOPERATOR; i++){ 
 		int length = strlen(c_op_vals[i-6]);
 		if(strncmp(&input[start], c_op_vals[i-6],length)==0){
 			if(previous<length){
@@ -101,7 +100,43 @@ enum token findCop(char *input, int start){//returns the type of C operator dete
 	return chosen;
 }
 
-void printDEBUG(enum token type){//ised for debugging purposes 
+enum token findCkeyword(char* input, int start){
+	int previous = -1;//stores longest length operator
+	int chosen = -1;
+	for(int i = AUTO; i<= _IMAGINARY; i++){ 
+		int length = strlen(c_op_vals[i-6]);
+		if(strncmp(&input[start], c_op_vals[i-6],length)==0){
+			if(previous<length){
+				previous = length;
+				chosen = i;
+			}
+		}
+	}
+	return chosen;
+}
+
+int findQuotes(char* input, int start){//retusn the index of the closing quote, and -1 if no quote detected, -2 if no closing quote detected
+
+	char quote;
+	int end = start;
+	if(input[start]=='\''){
+		quote = '\'';
+	}else if(input[start]=='\"'){
+		quote='\"';
+	}else{
+		return -1;//no quote detected in first char
+	}
+
+	while(end<strlen(input)){
+		end++;
+		if(input[end]==quote) return (end-start+1);
+	}
+	return -2;//this means no closing quotes detected
+
+}
+
+
+void printDEBUG(enum token type){//used for debugging purposes 
 	printf("%s\n",token_type[type]);
 }
 
@@ -111,11 +146,11 @@ void printWord(char* input, int start, int end) {//prints a substring. input is 
 		return;
 	}
 
-	int i=0;
-	for(i = start; i < end; i++) {
+	for(int i = start; i < end; i++) {
 		printf("%c", input[i]);
 	}
 }
+
 
 
 /*
@@ -154,12 +189,37 @@ void tokenize(char* input) {
 			continue;
 		}
 
-		
+		if(findQuotes(input,start)!=-1){//finds double and single quote pairs
+
+			tokenLength = findQuotes(input,start);
+			if(tokenLength==-2){
+				printf("No closing quotes detected in string! Please modify string and retry.\n");
+				break;
+			}
+			printf("quotes: ");
+			printWord(input, start, start + tokenLength);
+			printf("\n");
+			start+=tokenLength;
+			tokenLength=0;//reset length for finding largest token
+			type=0;
+			continue;
+
+		}
+
 
 		if(isspace(input[start])){//on whitespace, ignore and restart
 			start++;
-			continue;
-		}if(findCop(input,start)!=-1){//if found c op, increment tokelnegth
+			continue;			
+		}
+		if(findCkeyword(input,start)!=-1){
+			tempType = findCkeyword(input,start);
+			tempLength = strlen(c_op_vals[tempType-6]);
+			if(tempLength>tokenLength){
+				type=tempType;
+				tokenLength=tempLength;
+			}
+		}
+		if(findCop(input,start)!=-1){//if found c op, increment tokelnegth
 			tempType = findCop(input,start);
 			tempLength = strlen(c_op_vals[tempType-6]);
 			if(tempLength>tokenLength){
@@ -201,13 +261,17 @@ void tokenize(char* input) {
 			}
 		}
 
-		if(tokenLength==0){//if encountered unkown character
+		if(tokenLength==0){//if encountered unkown character, ignore and continue
 			start++;
 			continue;
 
 		}
 
-		printf("%s: ", token_type[type]);
+		if(type < AUTO){
+			printf("%s: ", token_type[type]);
+		}else{
+			printf("c keyword: ");
+		}
 		printWord(input, start, start + tokenLength);
 		printf("\n");
 		start+=tokenLength;
@@ -218,10 +282,11 @@ void tokenize(char* input) {
 }
 
 int main(int argc, char *argv[]) {
-	if(argc<2){
+	if(argc != 2){
 		printf("Please pass 1 argument to this program\n");
 		return EXIT_FAILURE;
 	}
 	tokenize(argv[1]);
+	printf("Tokenizer has finished\n");
 	return EXIT_SUCCESS;
 }
