@@ -4,6 +4,247 @@
 #include <string.h>
 #include "tokenizer.h"
 
+
+
+/*FUNCTION PROTOTYPES*/
+void tokenize(char* input);
+void printWord(char* input, int start, int end);
+int findQuotes(char* input, int start);
+enum token findCkeyword(char* input, int start);
+enum token findCop(char *input, int start);
+int findFloat(char *input, int start);
+int findHex(char *input, int start);
+int findOctal(char *input, int start);
+int findDecimal(char *input, int start);
+int findWord(char *input, int start);
+int isoctal(char c);
+
+
+/*DECLARATIONS*/
+
+enum token{
+	DELIMETER,
+	WORD,
+	DECIMAL,
+	OCTAL,
+	HEX,
+	FLOAT,
+	LEFTPARENTHESIS,//(
+	RIGHTPARENTHESIS,//)
+	LEFTBRACKET,//[
+	RIGHTBRACKET,//]
+	STRUCTMEMBER,//.
+	STRUCTPOINTER,//->
+	SIZEOF,//sizeof
+	COMMA,//,
+	NEGATE,//!
+	ONESCOMPLEMENT,//~
+	SHIFTRIGHT,//>>
+	SHIFTLEFT,//<<
+	BITWISEXOR,//^
+	BITWISEOR,//|
+	INCREMENT,//++
+	DECREMENT,//--
+	ADDITION,//+
+	DIVISION,///
+	LOGICALOR,//||
+	LOGICALAND,//&&
+	CONDITIONALTRUE,//?
+	CONDITIONALFALSE,//:
+	EQUALITYTEST,//==
+	INEQUALITYTEST,//!=
+	LESSTHANTEST,//<
+	GREATERTHANTEST,//>
+	LESSTHANEQUAL,//<=
+	GREATERTHANEQUAL,//>=
+	ASSIGNMENT,//=
+	PLUSEQUALS,//+=
+	MINUSEQUALS,//-=
+	TIMESEQUALS,//*=
+	DIVIDEEQUALS,///=
+	MODEQUALS,//%=
+	SHIFTRIGHTEQUALS,//>>=
+	SHIFTLEFTEQUALS,//<<=
+	BITWISEANDEQUALS,//&=
+	BITWISEXOREQUALS,//^=
+	BITWISEOREQUALS,//|=
+	ADDRESSOPERATOR,//&
+	MINUSOPERATOR,//-
+	MULTIPLYOPERATOR,//*
+	AUTO,
+	BREAK,
+	CASE,
+	CHAR,
+	CONST,
+	CONTINUE,
+	DEFAULT,
+	DO,
+	DOUBLE,
+	ELSE,
+	ENUM,
+	EXTERN,
+	_FLOAT,
+	FOR,
+	GOTO,
+	IF,
+	INLINE,
+	INT,
+	LONG,
+	REGISTER,
+	RESTRICT,
+	RETURN,
+	SHORT,
+	SIGNED,
+	_SIZEOF,
+	STATIC,
+	STRUCT,
+	SWITCH,
+	TYPEDEF,
+	UNION,
+	UNSIGNED,
+	VOID,
+	VOLATILE,
+	WHILE,
+	_BOOL,
+	_COMPLEX,
+	_IMAGINARY,
+	};
+
+const char *c_op_vals[] = {
+	"(",
+	")",
+	"[",
+	"]",
+	".",
+	"->",
+	"sizeof",
+	",",
+	"!",
+	"~",
+	">>",
+	"<<",
+	"^",
+	"|",
+	"++",
+	"--",
+	"+",
+	"/",
+	"||",
+	"&&",
+	"?",
+	":",
+	"==",
+	"!=",
+	"<",
+	">",
+	"<=",
+	">=",
+	"=",
+	"+=",
+	"-=",
+	"*=",
+	"/=",
+	"%=",
+	">>=",
+	"<<=",
+	"&=",
+	"^=",
+	"|=",
+	"&",
+	"-",
+	"*",
+	"auto",
+	"break",
+	"case",
+	"char",
+	"const",
+	"continue",
+	"default",
+	"do",
+	"double",
+	"else",
+	"enum",
+	"extern",
+	"float",
+	"for",
+	"goto",
+	"if",
+	"inline",
+	"int",
+	"long",
+	"register",
+	"restrict",
+	"return",
+	"short",
+	"signed",
+	"sizeof",
+	"static",
+	"struct",
+	"switch",
+	"typedef",
+	"union",
+	"unsigned",
+	"void",
+	"volatile",
+	"while",
+	"_Bool",
+	"_Complex",
+	"_Imaginary"
+	};
+
+const char *token_type[] = {
+	"delimiter",
+	"word",
+	"decimal integer",
+	"octal integer",
+	"hexadecimal integer",
+	"float",
+	"left parenthesis",
+	"right parenthesis",
+	"left bracket",
+	"right bracket",
+	"structure member",
+	"structure pointer",
+	"sizeof",
+	"comma",
+	"negate",
+	"1s complement",
+	"shift right",
+	"shift left",
+	"bitwise XOR",
+	"bitwise OR",
+	"increment",
+	"decrement",
+	"addition",
+	"division",
+	"logical OR",
+	"logical AND",
+	"conditional true",
+	"conditional false",
+	"equality test",
+	"inequality test",
+	"less than test",
+	"greater than test",
+	"less than or equal test",
+	"greater than or equal test",
+	"assignment",
+	"plus equals",
+	"minus equals",
+	"times equals",
+	"divide equals",
+	"mod equals",
+	"shift right equals",
+	"shift left equals",
+	"bitwise AND equals",
+	"bitwise XOR equals",
+	"bitwise OR equals",
+	"AND/address operator",
+	"minus/subtract operator",
+	"multiply/dereference operator",
+	"single quotes"
+	};
+
+/*HELPER FUNCTIONS*/
 int isoctal(char c){//returns 1 if char is octal, else 0
 	if(c>='0' && c<='7'){
 		return 1;
@@ -136,10 +377,6 @@ int findQuotes(char* input, int start){//retusn the index of the closing quote, 
 }
 
 
-void printDEBUG(enum token type){//used for debugging purposes 
-	printf("%s\n",token_type[type]);
-}
-
 void printWord(char* input, int start, int end) {//prints a substring. input is the pointer to the begining of a string, and the starting and ending index to be printed. Functions returns on index out of bounds
 	int length = strlen(input);
 	if(start<0 || end>length){
@@ -245,7 +482,7 @@ void tokenize(char* input) {
 			int t1 = findOctal(input,start);
 			int t2 = findDecimal(input,start);
 			int t3 = findFloat(input,start);
-			if(t1>=t2 && t1>=t3 && t1!=1 && input[start] == '0'){
+			if(t1>=t2 && t1>=t3 && input[start] == '0'){
 				tempType = OCTAL;
 				tempLength = t1;
 			}else if(t2>=t3 && t2>=t3){
