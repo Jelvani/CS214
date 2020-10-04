@@ -54,14 +54,16 @@ In addition, we completed the extra credit therefore, the program will be able t
 \end{flushleft}
 
 \section{Design Implementation}
-The design idea behind the Tokenizer was to assess what each token was as we come across it. To accomplish this, we would start at the beginning of our pointer of argv[1]. As we come across something that has not been tokenized yet, we attempt to figure out the possibilities of what it can be. This can be done by setting up if/else statements to decide what criteria must be met to be classified as a token.
+The design idea behind the Tokenizer was to assess what each token was as we come across it. To accomplish this, we would start at the beginning of our pointer of argv[1]. As we come across our char at index 0, we attempt to figure out the possibilities of what it can be. This is done by passing the current index and argv[1] pointer to a series of functions that are each designed to return the length of the detected token.
 
 \begin{flushleft}
-For example, if our first unidentified token is an '0', we have mulitple options to explore before classifying it as such. If we see that the index of '0' plus an additional index (one to the right of '0') is an 'x', we know we have a hexadecimal, likewise for any other possible token.
+For example, if our first character is an '0', we have multiple options to explore before classifying it as 1 token. If we see that the index of '0' plus an additional index (one to the right of '0') is an 'x', we know we have a hexadecimal, likewise for any other possible token. To figure this out, we pass the argv[1] pointer and index to a series of functions, such as, \emph{findFloat}, \emph{findHex}, \emph{findDecimal}, and even some functions that make no sense, \emph{findCop}. The idea behind this is that, we know some general cases, such as a word must start with an alpha character, but some tokens that can have many forms, such as a C op or C keyword, we just pass the character pointer and index to the function, and it will simply return -1 or 0, indicating token not detected or a token of length 0 detected. Then, by calling every function after each pass of tokenizing, we can choose the results of the function that returns the longest length, hence our usage of a \emph{greedy algorithm}.
 \end{flushleft}
 
 \begin{flushleft}
-Once we have figured out the type of token it can be, we send it to a specific method designated for that token type. Within these methods we are finding the length of the token, and returning the length back to our tokenize method. This allows us to figure out when a token begins and ends, thus useful for printing and not going back to any previous characters that were already identified. Returning the length from those methods like \textit{findOctal, findDecimal, etc} allows us to advance our tokenize method by taking the current index in addition with the length of the token to begin classifying the next type of token. This is essential because one requirement to the assignment was not to re-evaluate tokens in the pointer that we already addressed.
+After we have determined our longest token type and length, we can print out the type of token, and the token itself, since we have the current index, and the length of the token. Finally, we can increment the current index by the length, and continue our while loop from the top in the \emph{tokenize} function. The while loop keeps doing this task, until it detects the current index is greater than the input string length in argv[1].
+
+This design means that our program does not need to store any tokens in memory. It just compares the length of the token returned by each function, and chooses the longest one. Then, it prints out the token and the string, which is already in memory from the inputted argument.
 \end{flushleft}
 
 \begin{figure}[h!]

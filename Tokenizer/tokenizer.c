@@ -19,7 +19,7 @@ int isoctal(char c);
 
 /*DECLARATIONS*/
 
-enum token{
+enum token{//token types
 	DELIMETER,
 	WORD,
 	DECIMAL,
@@ -107,7 +107,7 @@ enum token{
 	_IMAGINARY,
 	};
 
-const char *c_op_vals[] = {
+const char *c_op_vals[] = {//c operators to check against
 	"(",
 	")",
 	"[",
@@ -189,7 +189,7 @@ const char *c_op_vals[] = {
 	"_Imaginary"
 	};
 
-const char *token_type[] = {
+const char *token_type[] = {//token type that is printed out
 	"delimiter",
 	"word",
 	"decimal integer",
