@@ -379,10 +379,11 @@ void printWord(char* input, int start, int end) {//prints a substring. input is 
 	if(start<0 || end>length){
 		return;
 	}
-
+	printf("\"");
 	for(int i = start; i < end; i++) {
 		printf("%c", input[i]);
 	}
+	printf("\"");
 }
 
 
