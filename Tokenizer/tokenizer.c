@@ -2,8 +2,246 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include "tokenizer.h"
 
+/*FUNCTION PROTOTYPES*/
+void tokenize(char* input);
+void printWord(char* input, int start, int end);
+int findQuotes(char* input, int start);
+enum token findCkeyword(char* input, int start);
+enum token findCop(char *input, int start);
+int findFloat(char *input, int start);
+int findHex(char *input, int start);
+int findOctal(char *input, int start);
+int findDecimal(char *input, int start);
+int findWord(char *input, int start);
+int isoctal(char c);
+
+
+/*DECLARATIONS*/
+
+enum token{
+	DELIMETER,
+	WORD,
+	DECIMAL,
+	OCTAL,
+	HEX,
+	FLOAT,
+	LEFTPARENTHESIS,//(
+	RIGHTPARENTHESIS,//)
+	LEFTBRACKET,//[
+	RIGHTBRACKET,//]
+	STRUCTMEMBER,//.
+	STRUCTPOINTER,//->
+	SIZEOF,//sizeof
+	COMMA,//,
+	NEGATE,//!
+	ONESCOMPLEMENT,//~
+	SHIFTRIGHT,//>>
+	SHIFTLEFT,//<<
+	BITWISEXOR,//^
+	BITWISEOR,//|
+	INCREMENT,//++
+	DECREMENT,//--
+	ADDITION,//+
+	DIVISION,///
+	LOGICALOR,//||
+	LOGICALAND,//&&
+	CONDITIONALTRUE,//?
+	CONDITIONALFALSE,//:
+	EQUALITYTEST,//==
+	INEQUALITYTEST,//!=
+	LESSTHANTEST,//<
+	GREATERTHANTEST,//>
+	LESSTHANEQUAL,//<=
+	GREATERTHANEQUAL,//>=
+	ASSIGNMENT,//=
+	PLUSEQUALS,//+=
+	MINUSEQUALS,//-=
+	TIMESEQUALS,//*=
+	DIVIDEEQUALS,///=
+	MODEQUALS,//%=
+	SHIFTRIGHTEQUALS,//>>=
+	SHIFTLEFTEQUALS,//<<=
+	BITWISEANDEQUALS,//&=
+	BITWISEXOREQUALS,//^=
+	BITWISEOREQUALS,//|=
+	ADDRESSOPERATOR,//&
+	MINUSOPERATOR,//-
+	MULTIPLYOPERATOR,//*
+	AUTO,
+	BREAK,
+	CASE,
+	CHAR,
+	CONST,
+	CONTINUE,
+	DEFAULT,
+	DO,
+	DOUBLE,
+	ELSE,
+	ENUM,
+	EXTERN,
+	_FLOAT,
+	FOR,
+	GOTO,
+	IF,
+	INLINE,
+	INT,
+	LONG,
+	REGISTER,
+	RESTRICT,
+	RETURN,
+	SHORT,
+	SIGNED,
+	_SIZEOF,
+	STATIC,
+	STRUCT,
+	SWITCH,
+	TYPEDEF,
+	UNION,
+	UNSIGNED,
+	VOID,
+	VOLATILE,
+	WHILE,
+	_BOOL,
+	_COMPLEX,
+	_IMAGINARY,
+	};
+
+const char *c_op_vals[] = {
+	"(",
+	")",
+	"[",
+	"]",
+	".",
+	"->",
+	"sizeof",
+	",",
+	"!",
+	"~",
+	">>",
+	"<<",
+	"^",
+	"|",
+	"++",
+	"--",
+	"+",
+	"/",
+	"||",
+	"&&",
+	"?",
+	":",
+	"==",
+	"!=",
+	"<",
+	">",
+	"<=",
+	">=",
+	"=",
+	"+=",
+	"-=",
+	"*=",
+	"/=",
+	"%=",
+	">>=",
+	"<<=",
+	"&=",
+	"^=",
+	"|=",
+	"&",
+	"-",
+	"*",
+	"auto",
+	"break",
+	"case",
+	"char",
+	"const",
+	"continue",
+	"default",
+	"do",
+	"double",
+	"else",
+	"enum",
+	"extern",
+	"float",
+	"for",
+	"goto",
+	"if",
+	"inline",
+	"int",
+	"long",
+	"register",
+	"restrict",
+	"return",
+	"short",
+	"signed",
+	"sizeof",
+	"static",
+	"struct",
+	"switch",
+	"typedef",
+	"union",
+	"unsigned",
+	"void",
+	"volatile",
+	"while",
+	"_Bool",
+	"_Complex",
+	"_Imaginary"
+	};
+
+const char *token_type[] = {
+	"delimiter",
+	"word",
+	"decimal integer",
+	"octal integer",
+	"hexadecimal integer",
+	"float",
+	"left parenthesis",
+	"right parenthesis",
+	"left bracket",
+	"right bracket",
+	"structure member",
+	"structure pointer",
+	"sizeof",
+	"comma",
+	"negate",
+	"1s complement",
+	"shift right",
+	"shift left",
+	"bitwise XOR",
+	"bitwise OR",
+	"increment",
+	"decrement",
+	"addition",
+	"division",
+	"logical OR",
+	"logical AND",
+	"conditional true",
+	"conditional false",
+	"equality test",
+	"inequality test",
+	"less than test",
+	"greater than test",
+	"less than or equal test",
+	"greater than or equal test",
+	"assignment",
+	"plus equals",
+	"minus equals",
+	"times equals",
+	"divide equals",
+	"mod equals",
+	"shift right equals",
+	"shift left equals",
+	"bitwise AND equals",
+	"bitwise XOR equals",
+	"bitwise OR equals",
+	"AND/address operator",
+	"minus/subtract operator",
+	"multiply/dereference operator",
+	"single quotes"
+	};
+
+/*HELPER FUNCTIONS*/
 int isoctal(char c){//returns 1 if char is octal, else 0
 	if(c>='0' && c<='7'){
 		return 1;
@@ -31,7 +269,7 @@ int findDecimal(char *input, int start){//returns number of chars in detected de
 	return length;
 }
 
-int findOctal(char *input, int start){//retursn number of chars in detected octal token
+int findOctal(char *input, int start){//returns number of chars in detected octal token
 	int length = 0;
 	while(isoctal(input[start+length])){
 		length++;
@@ -62,7 +300,7 @@ int findFloat(char *input, int start){//returns the number of chars in detected 
 				while(isdigit(input[start+length])){
 					length++;
 				}
-			}else{
+			}else{//these elses return 0 because then there are no deimals after dot, or no dot exists
 				return 0;
 			}
 		}else{
@@ -75,7 +313,7 @@ int findFloat(char *input, int start){//returns the number of chars in detected 
 				scnot++;
 			}
 		}
-		if(isdigit(input[start+length+scnot])){//these are the decimals for the exponent
+		if(isdigit(input[start+length+scnot])){//check again for decimals that make up exponent
 			length+=scnot;
 			while(isdigit(input[start+length])){
 				length++;
@@ -115,7 +353,7 @@ enum token findCkeyword(char* input, int start){
 	return chosen;
 }
 
-int findQuotes(char* input, int start){//retusn the index of the closing quote, and -1 if no quote detected, -2 if no closing quote detected
+int findQuotes(char* input, int start){//returns the index of the closing quote, and -1 if no quote detected, -2 if no closing quote detected
 
 	char quote;
 	int end = start;
@@ -124,21 +362,17 @@ int findQuotes(char* input, int start){//retusn the index of the closing quote, 
 	}else if(input[start]=='\"'){
 		quote='\"';
 	}else{
-		return -1;//no quote detected in first char
+		return -1;
 	}
 
 	while(end<strlen(input)){
 		end++;
 		if(input[end]==quote) return (end-start+1);
 	}
-	return -2;//this means no closing quotes detected
+	return -2;
 
 }
 
-
-void printDEBUG(enum token type){//used for debugging purposes 
-	printf("%s\n",token_type[type]);
-}
 
 void printWord(char* input, int start, int end) {//prints a substring. input is the pointer to the begining of a string, and the starting and ending index to be printed. Functions returns on index out of bounds
 	int length = strlen(input);
@@ -157,26 +391,28 @@ void printWord(char* input, int start, int end) {//prints a substring. input is 
 The tokenize functon will take a pointer to a string and print out all detected tokens and type
 */
 void tokenize(char* input) {
-	int i =0;
 	int start = 0;
-	int end = 1;
 	int length = strlen(input);
 	enum token type = 0;
 	enum token tempType = 0;
-	int tokenLength = 0;
+	int tokenLength = 0;//The temp variables are used to compare every token detected to see if it is the largest one, for greedy aspect of tokenizer
 	int tempLength = 0;
 	while(start < length){
 
 
-		if(strncmp(&input[start],"/*",2)==0){//for multiline c comments
+		if(strncmp(&input[start],"/*",2)==0){//for extra credit, multi-line C comment detector. increases pointer index until closing comment found
 			start+=2;
 			while(strncmp(&input[start],"*/",2)!=0){
+				if(start>length){
+					printf("No closing multi-line C comment (*/) detected!\n");
+					break;
+				}
 				start++;
 			}
 			start+=2;
 			continue;
 		}
-		if(strncmp(&input[start],"//",2)==0){//for singleline c comments
+		if(strncmp(&input[start],"//",2)==0){//for extra credit, single-line C comment detector. Ignores all text after '//' until newline terminator
 			start+=2;
 			while(start < length){
 				if(input[start]=='\n'){
@@ -189,7 +425,7 @@ void tokenize(char* input) {
 			continue;
 		}
 
-		if(findQuotes(input,start)!=-1){//finds double and single quote pairs
+		if(findQuotes(input,start)!=-1){//For extra credit, finds double and single quote pairs. Prints all content between 2 matching quotes as single token
 
 			tokenLength = findQuotes(input,start);
 			if(tokenLength==-2){
@@ -211,7 +447,7 @@ void tokenize(char* input) {
 			start++;
 			continue;			
 		}
-		if(findCkeyword(input,start)!=-1){
+		if(findCkeyword(input,start)!=-1){//Finds C keywords and sets token type and token length
 			tempType = findCkeyword(input,start);
 			tempLength = strlen(c_op_vals[tempType-6]);
 			if(tempLength>tokenLength){
@@ -219,14 +455,14 @@ void tokenize(char* input) {
 				tokenLength=tempLength;
 			}
 		}
-		if(findCop(input,start)!=-1){//if found c op, increment tokelnegth
+		if(findCop(input,start)!=-1){//Finds C operators and sets token type and token length
 			tempType = findCop(input,start);
 			tempLength = strlen(c_op_vals[tempType-6]);
 			if(tempLength>tokenLength){
 				type=tempType;
 				tokenLength=tempLength;
 			}
-		}if(isalpha(input[start])){
+		}if(isalpha(input[start])){//Finds alphanumerical token and sets token type and token length
 			tempType = WORD;
 			tempLength = findWord(input,start);
 			if(tempLength>tokenLength){
@@ -234,18 +470,18 @@ void tokenize(char* input) {
 				tokenLength=tempLength;
 			}
 		}
-		if(tolower(input[start+1])=='x' && findHex(input,start+2)>0){
+		if(tolower(input[start+1])=='x' && findHex(input,start+2)>0){//Finds hexadecimal tokens, and sets token type and token length
 			tempType = HEX;
 			tempLength = findHex(input,start+2)+2;
 			if(tempLength>tokenLength){
 				type=tempType;
 				tokenLength=tempLength;
 			}
-		}else{//choose max length from octal, deicimal, or float
+		}else{//if no hex detected, checks for octal, decimal, or float. Chooses the token with the longest length
 			int t1 = findOctal(input,start);
 			int t2 = findDecimal(input,start);
 			int t3 = findFloat(input,start);
-			if(t1>=t2 && t1>=t3 && t1!=1 && input[start] == '0'){
+			if(t1>=t2 && t1>=t3 && input[start] == '0'){
 				tempType = OCTAL;
 				tempLength = t1;
 			}else if(t2>=t3 && t2>=t3){
@@ -267,15 +503,15 @@ void tokenize(char* input) {
 
 		}
 
-		if(type < AUTO){
+		if(type < AUTO){//prints token type for all non-extra credit
 			printf("%s: ", token_type[type]);
 		}else{
-			printf("c keyword: ");
+			printf("c keyword: ");//else, type must be a C keyword from extra credit
 		}
 		printWord(input, start, start + tokenLength);
 		printf("\n");
-		start+=tokenLength;
-		tokenLength=0;//reset length for finding largest token
+		start+=tokenLength;//increment index by length of printed out token
+		tokenLength=0;//reset length and type for finding largest token
 		type=0;
 	}
 
