@@ -29,8 +29,3 @@ Octal Integer | 07345
 Hexadecimal Integer | 0xa367f
 Floating Point | 2.12444e+13
 C Operator | `(`, `)`, `[`, `]`, `.`, `->`, `sizeof`, `,`, `!`, `~`, `>>`, `<<`, `^`, `|`, `++`, `--`, `+`, `/`, `||`, `&&`, `?`, `:`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `>>=`, `<<=`, `&=`, `^=`, `|=`, `&`, `=`, `*`
-
-
-
-Below is a state machine diagram for token detection
-![FSM](fsm.svg)
