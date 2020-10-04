@@ -24,3 +24,51 @@ BASE CASES
 		plus equals: +=
 		word: pi
 		float: 3.14159e-10
+
+	INPUT: "if 123 char for"
+	EXPECTED OUTPUT:
+		c keyword: if
+		decimal integer: 123
+		c keyword: char
+		c keyword: for
+
+	INPUT: "<< >> >>= <<= != == = + - / *"
+	EXPECTED OUTPUT:
+		shift left: <<
+		shift right: >>
+		shift left equals: <<=
+		shift right equals: >>=
+		inequality: !=
+		equality: ==
+		assigment: =
+		addition: +
+		minus: -
+		division: /
+		multiple/dereference: *
+
+	INPUT: ": ) ( [ ] ^ ^= && || += -= *= /="
+	EXPECTED OUTPUT:
+		conditional false: :
+		right parenthesis: )
+		left parenthesis: (
+		left bracket: [
+		right bracket: ]
+		bitwise XOR: ^
+		bitwise XOR equals: ^=
+		logical AND: &&
+		logical OR: ||
+		plus equals: +=
+		minus equals: -=
+		times equals: *=
+		divide equals: /=
+
+	INPUT: ". -> sizeof , ! ++ --"
+	EXPECTED OUTPUT:
+		structure member: .
+		structure pointer: ->
+		c keyword: sizeof
+		comma: ,
+		negate: !
+		increment: ++
+		decrement: --
+		
