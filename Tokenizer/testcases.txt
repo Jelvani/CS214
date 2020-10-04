@@ -71,4 +71,25 @@ BASE CASES
 		negate: !
 		increment: ++
 		decrement: --
+	
+	INPUT: "~ ? 'test' "
+	EXPECTED OUTPUT:
+		1s compliment: ~
+		conditional true: ?
+		quotes: 'test'
+
+	INPUT: "/* * hi */"
+	EXPECTED OUTPUT:
+		no output, since it will skip comments.
+
+	INPUT: "//hi"
+	EXPECTED OUTPUT:
+		no output, since it will skip comments.
+
+	INPUT: "123stuff"
+	EXPECTED OUTPUT:
+		decimal integer: 123
+		word: stuff
+
+
 		
