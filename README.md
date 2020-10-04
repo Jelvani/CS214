@@ -21,11 +21,14 @@ You can run the program by:
 ***
 Tokenizer currently supports the following token types:
 
-Token Type  | Values
+Token Type  | Example
 ------------- | -------------
 Word  | hi
 Decimal Integer  |  123|
 Octal Integer | 07345
 Hexadecimal Integer | 0xa367f
 Floating Point | 2.12444e+13
-C Operator | `(`, `)`, `[`, `]`, `.`, `->`, `sizeof`, `,`, `!`, `~`, `>>`, `<<`, `^`, `|`, `++`, `--`, `+`, `/`, `||`, `&&`, `?`, `:`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `>>=`, `<<=`, `&=`, `^=`, `|=`, `&`, `=`, `*`
+C Operator | Check 'n1256.pdf'
+C Keywords | Check 'n1256.pdf'
+C Single-line and Multi-line comments (ignores these) | /*balhblah*/ and //blahblah
+Quote detection | "all one token" and 'all one token'
