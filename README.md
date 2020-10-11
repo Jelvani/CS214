@@ -1,7 +1,9 @@
-# Tokenizer
+# CS214 Projects
+
+## Tokenizer
 Tokenizer will take in 1 argument through the command-line specified as a string and tokenize the input.
 
-## Usage
+### Usage
 ***
 To compile `Tokenizer.c` run the following command:
 ```sh
@@ -17,7 +19,7 @@ You can run the program by:
 ./tokenizer "You string goes here"
 ```
 
-## Supported Tokens
+### Supported Tokens
 ***
 Tokenizer currently supports the following token types:
 
@@ -32,3 +34,5 @@ C Operator | Check 'n1256.pdf'
 C Keywords | Check 'n1256.pdf'
 C Single-line and Multi-line comments (ignores these) | /*balhblah*/ and //blahblah
 Quote detection | "all one token" and 'all one token'
+
+## ++Malloc
