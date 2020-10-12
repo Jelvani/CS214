@@ -1,5 +1,10 @@
-memgrind: memgrind.c
-	gcc -o memgrind memgrind.c
+all: memgrind
 
+mymalloc: mymalloc.c
+	gcc -o mm mymalloc.c
+
+memgrind: mymalloc.c memgrind.c
+	gcc -c mymalloc.c
+	gcc -o memgrind memgrind.c mymalloc.o
 clean:
-	rm -f memgrind
+	rm -f mymalloc.o memgrind
