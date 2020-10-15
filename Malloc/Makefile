@@ -1,10 +1,10 @@
-all: memgrind
+CC = gcc
 
-mymalloc: mymalloc.c
-	gcc -o mm mymalloc.c
-
-memgrind: mymalloc.c memgrind.c
-	gcc -c mymalloc.c
-	gcc -o memgrind memgrind.c mymalloc.o
+memgrind: mymalloc.o memgrind.o
+	$(CC) memgrind.o mymalloc.o -o memgrind
+memgrind.o: memgrind.c mymalloc.h
+	$(CC) -c memgrind.c
+mymalloc.o: mymalloc.c mymalloc.h
+	$(CC) -c mymalloc.c
 clean:
-	rm -f mymalloc.o memgrind
+	rm -f memgrind *.o
