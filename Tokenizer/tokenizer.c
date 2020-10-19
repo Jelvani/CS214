@@ -261,9 +261,6 @@ int findWord(char *input, int start){//returns number of chars in detected word 
 
 int findDecimal(char *input, int start){//returns number of chars in detected decimal token
 	int length = 0;
-	if(input[start]=='0'){
-		return length;
-	}
 	while(isdigit(input[start+length])){
 		length++;
 	}
@@ -289,9 +286,6 @@ int findHex(char *input, int start){//returns number of chars in detected hexade
 int findFloat(char *input, int start){//returns the number of chars in detected float token
 	int length = 0;
 	int scnot = 0;
-		if(input[start]=='0'){
-			return length;
-		}
 		while(isdigit(input[start+length])){
 			length++;
 		}
