@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <stdlib.h>
 /*simulated memory, begins with first 2 bytes of a block as metadata in order:  size of block (int16_t) and the size is negative if block not used, positive if used*/
 static char vmem[4096] = {0};
 
@@ -14,9 +15,10 @@ void *mymalloc(size_t size){
 	}
 	/*now we must loop through the blocks until we encounter metadata that is not used and large enough*/
 	char *ptr = vmem;//pointer to begiing of metadata for a block, starts at first memory location
-	while((size+2) > *(int16_t*) ptr){
+	while((size+2) > abs(*(int16_t*) ptr) && *(int16_t*) ptr > 0){
 		ptr+= *(int16_t*) ptr;
 	}
+
 
 
 }
