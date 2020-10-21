@@ -15,10 +15,45 @@ void *mymalloc(size_t size){
 	}
 	/*now we must loop through the blocks until we encounter metadata that is not used and large enough*/
 	char *ptr = vmem;//pointer to begiing of metadata for a block, starts at first memory location
-	while((size+2) > abs(*(int16_t*) ptr) && *(int16_t*) ptr > 0){
-		ptr+= *(int16_t*) ptr;
+	int16_t tmpsize = 0;
+	while(ptr < &vmem[4093]){//ptr here can only point to metadata bytes
+		if(*(int16_t*) ptr <0){//an unused prev allocated block
+			if(abs(*(int16_t*) ptr) > (size+2)){
+				tmpsize = (int16_t) size;
+				break;
+			}
+		}
+		ptr+= abs(*(int16_t*) ptr)+2;
+
 	}
 
+	if(tmpsize==0){//out of memory!
+		return NULL;
+	}else{
+		int newblock = (abs(*(int16_t*) ptr) - tmpsize)*-1;
+		char* tmp = ptr + tmpsize+2;
+		memcpy(ptr,&tmpsize,2);
+		ptr+=2;
+		memcpy(tmp,&newblock,2);
+	}
+	return ptr;
+}
 
+void main(){
+
+	int* ptr = (int*) mymalloc(sizeof(int)*10);
+	ptr[0]= 5;
+	ptr[1] = 10;
+	int* ptr1 = (int*) mymalloc(sizeof(int)*100);
+	int* ptr2 = (int*) mymalloc(sizeof(int)*10);
+	int* ptr3 = (int*) mymalloc(sizeof(int)*900);
+
+	ptr1[0]= 443500;
+	ptr1[1] = 3453;
+	ptr2[0] = 1234;
+	ptr2[1] = 5678;
+	printf("%d %d\n",ptr[0],ptr[1]);
+	printf("%d %d\n",ptr1[0],ptr1[1]);
+	printf("%d %d\n",ptr2[0],ptr2[1]);
 
 }
