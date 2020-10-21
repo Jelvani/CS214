@@ -1,9 +1,9 @@
-#include "mymalloc.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "mymalloc.h"
 /*simulated memory, begins with first 2 bytes of a block as metadata in order:  size of block (int16_t) and the size is negative if block not used, positive if used*/
 static char vmem[4096] = {0};
 
@@ -44,10 +44,9 @@ void *mymalloc(size_t size, char* file, char* line){
 /*The free function will follow the metadata chain to see if given pointer matches any of the addresses*/
 void myfree(void* ptr,char* file, char* line){
 
-	char* current = vmem;
+	void* current = vmem;
 	ptr-=2;
 	while(current < &vmem[4093]){
-		printf("current: %lp Pointer: %lp\n",current,ptr);
 		if(current ==  ptr){
 			int16_t tmp = *(int16_t*) ptr;
 			if(tmp<0){
@@ -62,6 +61,7 @@ void myfree(void* ptr,char* file, char* line){
 	printf("Error freeing pointer in %s at line %s\n",file,line);
 }
 
+/*
 void main(){
 
 	int* ptr = (int*) mymalloc(sizeof(int)*10,NULL,NULL);
@@ -85,4 +85,4 @@ void main(){
 	printf("%d %d\n",ptr2[0],ptr2[1]);
 	myfree(ptr2,"file","line");
 }
-
+*/
