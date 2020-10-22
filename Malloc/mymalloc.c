@@ -15,28 +15,35 @@ void *mymalloc(size_t size, char* file, char* line){
 		memcpy(&vmem[0],&tmp,2);
 	}
 	/*now we must loop through the blocks until we encounter metadata that is not used and large enough*/
-	char *ptr = vmem;//pointer to begiing of metadata for a block, starts at first memory location
+	char* ptr = vmem;//pointer to begining of metadata for a block, starts at first memory location
 	int16_t tmpsize = 0;
 	while(ptr < &vmem[4093]){//ptr here can only point to metadata bytes
-		if(*(int16_t*) ptr <0){//an unused prev allocated block
-			if(abs(*(int16_t*) ptr) >= (size)){
+		int16_t cp = *(int16_t*) ptr;
+
+		if(cp < 0){//an unused prev allocated block
+			if(abs(cp) >= size){
 				tmpsize = (int16_t) size;
 				break;
 			}
 		}
-		ptr+= abs(*(int16_t*) ptr)+2;
+		//printf("current increment malloc: %d\n",abs(cp));
+		ptr+= abs(cp) + 2;
 
 	}
 
 	if(tmpsize==0){//out of memory!
+		printf("Mymalloc: error in %s at line %s\n",file,line);
 		return NULL;
 	}else{
-		int newblock = (abs(*(int16_t*) ptr) - tmpsize)*-1;
+		int16_t cp = *(int16_t*) ptr;
+		int16_t newblocksize = abs(cp) - tmpsize;
 		char* tmp = ptr + tmpsize+2;
 		memcpy(ptr,&tmpsize,2);
 		ptr+=2;
-		if((tmp+3) < &vmem[4095]){
-			memcpy(tmp,&newblock,2);
+		if((tmp+3) < &vmem[4095] && newblocksize>2){
+			newblocksize-=2;
+			newblocksize*=-1;
+			memcpy(tmp,&newblocksize,2);
 		}	
 		
 	}
@@ -46,20 +53,24 @@ void *mymalloc(size_t size, char* file, char* line){
 
 /*The free function will follow the metadata chain to see if given pointer matches any of the addresses*/
 void myfree(void* ptr,char* file, char* line){
-
-	void* current = vmem;
-	ptr-=2;
+	
+	char* current = vmem;
+	ptr = ptr -2;
 	while(current < &vmem[4093]){
-		if(current ==  ptr){
-			int16_t tmp = *(int16_t*) ptr;
-			if(tmp<0){//address was not allocated by mymalloc
+		int16_t cp = *(int16_t*) current;
+		if(current==ptr){
+
+			if(cp<0){//address was not allocated by mymalloc
 				break;
 			}
-			tmp*=-1;
-			memcpy(ptr,&tmp,2);
+			cp*=-1;
+			memcpy(ptr,&cp,2);
 			return;
 		}
-		current+= abs(*(int16_t*)current) +2;
+		//printf("abs of cp %d\n",abs(cp));
+		
+		current+= abs(cp) +2;
+
 	}
 	printf("Error freeing pointer in %s at line %s\n",file,line);
 }
@@ -67,13 +78,23 @@ void myfree(void* ptr,char* file, char* line){
 /*
 void main(){
 
+	char* tmp[200];
+	for(int z = 0; z < 3; z++){
+		for(int i=1;i<20;i++){
+			tmp[i] = mymalloc(i,NULL,NULL);
+			}
+		char* ptr;
+		ptr=tmp[1]-2;
+		for(int i=1;i<20;i++){
 
-	for(int i=0;i<2000;i++){
-		
-		char* tmp = mymalloc(1,NULL,NULL);
-		myfree(tmp,NULL,NULL);
+			printf("malloc size %d\n",*((int16_t*) ptr));
+			ptr+= *(int16_t*) ptr+2;
+			}
+		for(int i=1;i<20;i++){
+			myfree(tmp[i],NULL,NULL);
+			printf("free size %d\n",*((int16_t*)(tmp[i]-2)));
+		}
 	}
-
 
 }
 */

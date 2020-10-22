@@ -44,12 +44,16 @@ long workloadB() {
 	while(counter < 120) {
 		for(int i = 0; i < 120; i++) {
 			testArray[i] = malloc(1);
+			//printf("malloc %lp\n",testArray[i]);
+			
 		}
 
 		for(int j = 0; j < 120; j++) {
 			free(testArray[j]);
-		}
+			//printf("free %lp\n",testArray[j]);
 
+		}
+		
 		counter++;
 	}
 	gettimeofday(&t_end, NULL);
