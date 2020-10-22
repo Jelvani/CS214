@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+#include <fcntl.h>
 #include "mymalloc.h"
+
+#define GRN "\x1B[32m"
+#define RESET "\x1B[0m"
 
 /**
  * workloadA()
@@ -93,11 +97,61 @@ long workloadE() {
 	return (t_end.tv_usec - t_start.tv_usec);
 }
 
+void printReport() {
+	long longestA = 0, longestB = 0, longestC = 0, longestD = 0, longestE = 0;
+	long totalA = 0, totalB = 0, totalC = 0, totalD = 0, totalE = 0;
+
+	printf("\nThe following stress test goes from A-E running each test 50 times.\n\n");
+
+	printf("TEST\t\tMEAN\t\tSLOWEST\t\tTOTAL\n");
+
+	printf(GRN "A");
+	for(int i = 0; i < 50; i++) {
+		long temp = workloadA();
+		if(temp > longestA)
+			longestA = temp;
+		totalA += temp;
+	}
+	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalA / 50), longestA, totalA);
+
+	printf(GRN "B");
+	for(int i = 0; i < 50; i++) {
+		long temp = workloadB();
+		if(temp > longestB)
+			longestB = temp;
+		totalB += temp;
+	}
+	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalB / 50), longestB, totalB);
+
+	printf(GRN "C");
+		for(int i = 0; i < 50; i++) {
+		long temp = workloadC();
+		if(temp > longestC)
+			longestC = temp;
+		totalC += temp;
+	}
+	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalC / 50), longestC, totalC);
+
+	printf(GRN "D");
+		for(int i = 0; i < 50; i++) {
+		long temp = workloadD();
+		if(temp > longestD)
+			longestD = temp;
+		totalB += temp;
+	}
+	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalD / 50), longestD, totalD);
+	
+	printf(GRN "E");
+		for(int i = 0; i < 50; i++) {
+		long temp = workloadE();
+		if(temp > longestE)
+			longestE = temp;
+		totalE += temp;
+	}
+	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalE / 50), longestE, totalE);
+}
+
 int main() {
-	printf("Workload A average time: %ld\xC2\xB5s\n", workloadA());
-	printf("Workload B average time: %ld\xC2\xB5s\n", workloadB());
-	printf("Workload C average time: %ld\xC2\xB5s\n", workloadC());
-	printf("Workload D average time: %ld\xC2\xB5s\n", workloadD());
-	printf("Workload E average time: %ld\xC2\xB5s\n", workloadE());
+	printReport();
 	return 0;
 }
