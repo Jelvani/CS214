@@ -51,20 +51,42 @@ void *mymalloc(size_t size, char* file, char* line){
 }
 
 
+
+
+void merge(){//will defrag the memory space
+	char* currentStart = vmem;
+	char* currentEnd = vmem;
+	while(currentStart<&vmem[4095]){
+
+		if(*(int16_t*)currentStart < 0){//start of open block
+			currentEnd=currentStart;
+			while(*(int16_t*)currentEnd < 0){
+				int16_t size = abs(*(int16_t*)currentEnd);
+				currentEnd+=size+2;
+			}
+			int16_t diff = currentEnd - currentStart-2;
+			diff*=-1;
+			memcpy(currentStart,&diff,2);
+		}
+		currentStart+=abs(*(int16_t*)currentStart)+2;
+
+	}
+}
 /*The free function will follow the metadata chain to see if given pointer matches any of the addresses*/
 void myfree(void* ptr,char* file, char* line){
 	
 	char* current = vmem;
-	ptr = ptr -2;
-	while(current < &vmem[4093]){
-		int16_t cp = *(int16_t*) current;
-		if(current==ptr){
+	ptr -= 2;
+	while(current < &vmem[4095]){//while loop traverses through linked list
+		int16_t cp = *(int16_t*) current;//get current block size
+		if(current==ptr){ 
 
-			if(cp<0){//address was not allocated by mymalloc
+			if(cp<0){//address given to free was not allocated by mymalloc
 				break;
 			}
 			cp*=-1;
 			memcpy(ptr,&cp,2);
+			merge();
 			return;
 		}
 		//printf("abs of cp %d\n",abs(cp));
