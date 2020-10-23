@@ -4,46 +4,46 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "mymalloc.h"
+
+#define _MEMSIZE 4096
+#define _BLOCKSIZE sizeof(int16_t)
+
 /*simulated memory, begins with first 2 bytes of a block as metadata in order:  size of block (int16_t) and the size is negative if block not used, positive if used*/
-static char vmem[4096] = {0,0};
+static char vmem[_MEMSIZE] = {0,0};//magic number initialization
 
 
-void *mymalloc(size_t size, char* file, char* line){
+void *mymalloc(size_t size, char* file, char* line){//returns null on error, will return pointer on success
 	if(vmem[0] == 0 && vmem[1] == 0){//on first call, create initial metadata
-		int16_t tmp = (int16_t) sizeof(vmem) -2;
+		int16_t tmp = (int16_t) sizeof(vmem) - _BLOCKSIZE;
 		tmp*=-1;
-		memcpy(&vmem[0],&tmp,2);
+		memcpy(&vmem[0],&tmp,_BLOCKSIZE);
 	}
 	/*now we must loop through the blocks until we encounter metadata that is not used and large enough*/
 	char* ptr = vmem;//pointer to begining of metadata for a block, starts at first memory location
 	int16_t tmpsize = 0;
-	while(ptr < &vmem[4093]){//ptr here can only point to metadata bytes
+	while(ptr < &vmem[_MEMSIZE-1]){//ptr here can only point to metadata bytes
 		int16_t cp = *(int16_t*) ptr;
 
-		if(cp < 0){//an unused prev allocated block
-			if(abs(cp) >= size){
-				tmpsize = (int16_t) size;
-				break;
-			}
+		if(cp < 0 && abs(cp) >= size){//an unused prev allocated block
+			tmpsize = (int16_t) size;
+			break;
 		}
-		//printf("current increment malloc: %d\n",abs(cp));
-		ptr+= abs(cp) + 2;
-
+		ptr+= abs(cp) + _BLOCKSIZE;
 	}
 
-	if(tmpsize==0){//out of memory!
+	if(tmpsize==0){//not enough memory!
 		printf("Mymalloc: error in %s at line %s\n",file,line);
 		return NULL;
 	}else{
 		int16_t cp = *(int16_t*) ptr;
 		int16_t newblocksize = abs(cp) - tmpsize;
-		char* tmp = ptr + tmpsize+2;
-		memcpy(ptr,&tmpsize,2);
-		ptr+=2;
-		if((tmp+3) < &vmem[4095] && newblocksize>2){
-			newblocksize-=2;
+		char* tmp = ptr + tmpsize+_BLOCKSIZE;
+		memcpy(ptr,&tmpsize,_BLOCKSIZE);
+		ptr+=_BLOCKSIZE;
+		if((tmp+_BLOCKSIZE+1) < &vmem[_MEMSIZE-1] && newblocksize>_BLOCKSIZE){
+			newblocksize-=_BLOCKSIZE;
 			newblocksize*=-1;
-			memcpy(tmp,&newblocksize,2);
+			memcpy(tmp,&newblocksize,_BLOCKSIZE);
 		}	
 		
 	}
@@ -56,19 +56,19 @@ void *mymalloc(size_t size, char* file, char* line){
 void merge(){//will defrag the memory space
 	char* currentStart = vmem;
 	char* currentEnd = vmem;
-	while(currentStart<&vmem[4095]){
+	while(currentStart<&vmem[_MEMSIZE-1]){
 
 		if(*(int16_t*)currentStart < 0){//start of open block
 			currentEnd=currentStart;
 			while(*(int16_t*)currentEnd < 0){
 				int16_t size = abs(*(int16_t*)currentEnd);
-				currentEnd+=size+2;
+				currentEnd+=size+_BLOCKSIZE;
 			}
-			int16_t diff = currentEnd - currentStart-2;
+			int16_t diff = currentEnd - currentStart - _BLOCKSIZE;
 			diff*=-1;
-			memcpy(currentStart,&diff,2);
+			memcpy(currentStart,&diff,_BLOCKSIZE);
 		}
-		currentStart+=abs(*(int16_t*)currentStart)+2;
+		currentStart+=abs(*(int16_t*)currentStart)+_BLOCKSIZE;
 
 	}
 }
@@ -76,8 +76,8 @@ void merge(){//will defrag the memory space
 void myfree(void* ptr,char* file, char* line){
 	
 	char* current = vmem;
-	ptr -= 2;
-	while(current < &vmem[4095]){//while loop traverses through linked list
+	ptr -= _BLOCKSIZE;
+	while(current < &vmem[_MEMSIZE-1]){//while loop traverses through linked list
 		int16_t cp = *(int16_t*) current;//get current block size
 		if(current==ptr){ 
 
@@ -85,38 +85,13 @@ void myfree(void* ptr,char* file, char* line){
 				break;
 			}
 			cp*=-1;
-			memcpy(ptr,&cp,2);
+			memcpy(ptr,&cp,_BLOCKSIZE);
 			merge();
 			return;
 		}
-		//printf("abs of cp %d\n",abs(cp));
 		
-		current+= abs(cp) +2;
+		current+= abs(cp) +_BLOCKSIZE;
 
 	}
-	printf("Error freeing pointer in %s at line %s\n",file,line);
+	printf("Myfree: error in %s at line %s\n",file,line);
 }
-
-/*
-void main(){
-
-	char* tmp[200];
-	for(int z = 0; z < 3; z++){
-		for(int i=1;i<20;i++){
-			tmp[i] = mymalloc(i,NULL,NULL);
-			}
-		char* ptr;
-		ptr=tmp[1]-2;
-		for(int i=1;i<20;i++){
-
-			printf("malloc size %d\n",*((int16_t*) ptr));
-			ptr+= *(int16_t*) ptr+2;
-			}
-		for(int i=1;i<20;i++){
-			myfree(tmp[i],NULL,NULL);
-			printf("free size %d\n",*((int16_t*)(tmp[i]-2)));
-		}
-	}
-
-}
-*/
