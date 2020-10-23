@@ -48,16 +48,11 @@ long workloadB() {
 	while(counter < 120) {
 		for(int i = 0; i < 120; i++) {
 			testArray[i] = malloc(1);
-			//printf("malloc %lp\n",testArray[i]);
-			
 		}
 
 		for(int j = 0; j < 120; j++) {
 			free(testArray[j]);
-			//printf("free %lp\n",testArray[j]);
-
 		}
-		
 		counter++;
 	}
 	gettimeofday(&t_end, NULL);
@@ -66,11 +61,27 @@ long workloadB() {
 
 long workloadC() {
 	struct timeval t_start, t_end;
+	char* testArray[120];
+	int numberAllocated = 0;
 	int counter = 0;
 	gettimeofday(&t_start, NULL);
-	while(counter < 240) {
-		counter++;
+	while(numberAllocated != 120) {
+		int random = (rand() % 2);
+		if(random == 0) {
+			testArray[numberAllocated] = malloc(1);
+			numberAllocated++;
+		} else {
+			if(numberAllocated > 0) {
+				free(testArray[numberAllocated - 1]);
+				numberAllocated--;
+			}
+		}
 	}
+
+	for(int i = 0; i < numberAllocated; i++) {
+		free(testArray[i]);
+	}
+
 	gettimeofday(&t_end, NULL);
 	return (t_end.tv_usec - t_start.tv_usec);
 }
