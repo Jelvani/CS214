@@ -11,8 +11,18 @@
 /*simulated memory, begins with first 2 bytes of a block as metadata in order:  size of block (int16_t) and the size is negative if block not used, positive if used*/
 static char vmem[_MEMSIZE] = {0,0};//magic number initialization
 
-
 void *mymalloc(size_t size, char* file, char* line){//returns null on error, will return pointer on success
+
+	/**
+	 * Sanity check for malloc
+	 * if malloc == 0 OR bigger than max_size - size of block [4096-2 = 4094]
+	 * return err msg and do not continue with malloc. 
+	 */
+	if(size == 0 || size > 4095) {
+		//printf("ERR: malloc must be within size [1, 4095).\n");
+		return;
+	}
+
 	if(vmem[0] == 0 && vmem[1] == 0){//on first call, create initial metadata
 		int16_t tmp = (int16_t) sizeof(vmem) - _BLOCKSIZE;
 		tmp*=-1;
@@ -31,10 +41,10 @@ void *mymalloc(size_t size, char* file, char* line){//returns null on error, wil
 		ptr+= abs(cp) + _BLOCKSIZE;
 	}
 
-	if(tmpsize==0){//not enough memory!
+	if(tmpsize == 0) {//not enough memory!
 		printf("Mymalloc: error in %s at line %s\n",file,line);
 		return NULL;
-	}else{
+	} else {
 		int16_t cp = *(int16_t*) ptr;
 		int16_t newblocksize = abs(cp) - tmpsize;
 		char* tmp = ptr + tmpsize+_BLOCKSIZE;
@@ -44,20 +54,15 @@ void *mymalloc(size_t size, char* file, char* line){//returns null on error, wil
 			newblocksize-=_BLOCKSIZE;
 			newblocksize*=-1;
 			memcpy(tmp,&newblocksize,_BLOCKSIZE);
-		}	
-		
+		}		
 	}
 	return ptr;
 }
-
-
-
 
 void merge(){//will defrag the memory space
 	char* currentStart = vmem;
 	char* currentEnd = vmem;
 	while(currentStart<&vmem[_MEMSIZE-1]){
-
 		if(*(int16_t*)currentStart < 0){//start of open block
 			currentEnd=currentStart;
 			while(*(int16_t*)currentEnd < 0){
@@ -69,18 +74,20 @@ void merge(){//will defrag the memory space
 			memcpy(currentStart,&diff,_BLOCKSIZE);
 		}
 		currentStart+=abs(*(int16_t*)currentStart)+_BLOCKSIZE;
-
 	}
 }
+
 /*The free function will follow the metadata chain to see if given pointer matches any of the addresses*/
 void myfree(void* ptr,char* file, char* line){
 	
+	if(ptr == NULL)
+		return;
+
 	char* current = vmem;
 	ptr -= _BLOCKSIZE;
 	while(current < &vmem[_MEMSIZE-1]){//while loop traverses through linked list
 		int16_t cp = *(int16_t*) current;//get current block size
-		if(current==ptr){ 
-
+		if(current==ptr) { 
 			if(cp<0){//address given to free was not allocated by mymalloc
 				break;
 			}
@@ -91,7 +98,6 @@ void myfree(void* ptr,char* file, char* line){
 		}
 		
 		current+= abs(cp) +_BLOCKSIZE;
-
 	}
 	printf("Myfree: error in %s at line %s\n",file,line);
 }

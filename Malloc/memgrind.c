@@ -71,6 +71,7 @@ long workloadB() {
 /**
  * workloadC()
  * record t_start using gettimeofday()
+ * 
  * until number of allocations (mymalloc) equals 120
  * 		randomly generate a number -> 0 or 1
  * 		if 0:
@@ -81,6 +82,10 @@ long workloadB() {
  * 				free last malloc'd position from array()
  * 			else
  * 				do nothing
+ * 
+ * once number of allocations has equaled to 120
+ * 		free remainder of array
+ * 
  * record t_end using gettimeofday
  * This will return value in microseconds.
  */
@@ -89,7 +94,6 @@ long workloadC() {
 	time_t t;
 	char* testArray[120];
 	int numberAllocated = 0;
-	int counter = 0;
 	srand((unsigned) time(&t));
 	gettimeofday(&t_start, NULL);
 	while(numberAllocated != 120) {
@@ -113,13 +117,37 @@ long workloadC() {
 	return getTime(t_start, t_end);
 }
 
+/**
+ * workloadD()
+ * record t_start using gettimeofday()
+ * 
+ * We will be testing various failures to ensure mymalloc/myfree are able to handle cases
+ * that are not meant to work.
+ * 
+ * record t_end using gettimeofday()
+ * This will return value in microseconds.
+ */ 
 long workloadD() {
 	struct timeval t_start, t_end;
 	int counter = 0;
 	gettimeofday(&t_start, NULL);
-	while(counter < 1) {
-		counter++;
-	}
+
+	//p allocation to big -> return nothing 
+	char* p = (char*) malloc(5000);
+
+	//x free'd first time, cannot free already free'd pointer
+	char* x = (char*) malloc(100);
+	free(x);
+	free(x);
+
+	//t trying to free memory not allocated to t.
+	char* t = (char*) malloc(200);
+	free(t + 10);
+
+	//j never allocated by malloc, thus cannot free.
+	int *j;
+	free(j);
+
 	gettimeofday(&t_end, NULL);
 	return getTime(t_start, t_end);
 }
