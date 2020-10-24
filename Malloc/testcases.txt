@@ -1,0 +1,43 @@
+Workload D:
+	This workload is meant to test failure cases that would traditionally cause conflicts
+	with malloc/free. We utilized test cases provided from Asst1.pdf to denote the following
+	issues that may arise with user input.
+
+	char *p = malloc(5000);
+	
+	This should fail as the malloc size we are requesting is larger than we can allocate.
+
+	char *t = malloc(100);
+	free(t);
+	free(t);
+
+	This should fail due to the fact that we already freed t in the second line; however,
+	try to call free on the t pointer. This should return an error to the user.
+
+	char *j = malloc(200);
+	free(j + 10);
+
+	This should return an error because we are accessing a block of memory that is not allocated
+	to j. 
+
+Workload E:
+	In workload E, we are looking to test the efficiency of our merging, as it is important
+	for malloc to handle merging of blocks that are not utilized.
+
+	Bounds: testArray has a fixed size of 4094 (MEM SIZE - META SIZE).
+
+	We start by randomly generating a number from 1-59, and mallocing this to our testArray.
+	
+	After we store data to the array, we cycle through the array and make a decision based on
+	a random integer.
+
+		If the integer equals 0, continue.
+		If the integer equals 1, free that memory block and set the block in the array as null.
+
+	This is important as it allows us to implement the idea of fragmentation where multiple blocks
+	can be located to one another and should be merged together.
+
+	Post free, we randomly choose a number from 29-59 and try to malloc these values. We choose a bigger
+	value to force the program to generate bigger blocks if need be.
+
+	After this, we free the entirety of the array as the test is concluded.
