@@ -182,11 +182,14 @@ long workloadE() {
 	srand((unsigned) time(&t));
 	gettimeofday(&t_start, NULL);
 
+	//Randomly malloc from size 1-59 in testArray
 	for(int i = 0; i < 59; i++) {
 		int random = (rand() % 60);
 		testArray[i] =  malloc(random);
 	}
 
+	//Random choose number, and free if random == 1.
+	//This allows for fragments to be setup in array to test functionality of merge()
 	for(int i = 0; i < 59; i++) {
 		int random = (rand() % 2);
 		if(random == 1) {
@@ -195,6 +198,7 @@ long workloadE() {
 		}
 	}
 
+	//Randomly malloc from size 29-59 in testArray
 	for(int i = 0; i < 59; i++) {
 		if(testArray[i] == NULL) {
 			int random = (rand() % 30) + 30;
@@ -202,6 +206,7 @@ long workloadE() {
 		}
 	}
 
+	//Empty out remainder of array
 	for(int i = 0; i < 59; i++) {
 		if(testArray[i] != NULL) {
 			free(testArray[i]);
@@ -213,6 +218,14 @@ long workloadE() {
 	return getTime(t_start, t_end);
 }
 
+/**
+ * printReport()
+ * 
+ * Initialize variables for storing test data
+ * Run through each workload A-E 50 times, and store total time, and longest time
+ * Print data
+ * 
+ */
 void printReport() {
 	long longestA = 0, longestB = 0, longestC = 0, longestD = 0, longestE = 0;
 	long totalA = 0, totalB = 0, totalC = 0, totalD = 0, totalE = 0;
