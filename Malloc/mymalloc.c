@@ -11,17 +11,7 @@
 /*simulated memory, begins with first 2 bytes of a block as metadata in order:  size of block (int16_t) and the size is negative if block not used, positive if used*/
 static char vmem[_MEMSIZE] = {0,0};//magic number initialization
 
-void *mymalloc(size_t size, char* file, char* line){//returns null on error, will return pointer on success
-
-	/**
-	 * Sanity check for malloc
-	 * if malloc == 0 OR bigger than max_size - size of block [4096-2 = 4094]
-	 * return err msg and do not continue with malloc. 
-	 */
-	if(size == 0 || size > 4095) {
-		//printf("ERR: malloc must be within size [1, 4095).\n");
-		return;
-	}
+void *mymalloc(size_t size, char* file, char* line){//returns null on error, will return pointer on succes
 
 	if(vmem[0] == 0 && vmem[1] == 0){//on first call, create initial metadata
 		int16_t tmp = (int16_t) sizeof(vmem) - _BLOCKSIZE;
@@ -42,7 +32,7 @@ void *mymalloc(size_t size, char* file, char* line){//returns null on error, wil
 	}
 
 	if(tmpsize == 0) {//not enough memory!
-		printf("Mymalloc: error in %s at line %s\n",file,line);
+		printf("Mymalloc: error in %s at line %d\n",file,line);
 		return NULL;
 	} else {
 		int16_t cp = *(int16_t*) ptr;
@@ -99,5 +89,5 @@ void myfree(void* ptr,char* file, char* line){
 		
 		current+= abs(cp) +_BLOCKSIZE;
 	}
-	printf("Myfree: error in %s at line %s\n",file,line);
+	printf("Myfree: error in %s at line %d\n",file,line);
 }

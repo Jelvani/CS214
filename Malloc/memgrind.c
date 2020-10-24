@@ -136,9 +136,9 @@ long workloadD() {
 	char* p = (char*) malloc(5000);
 
 	//x free'd first time, cannot free already free'd pointer			NOT HANDLED YET
-	//char* x = (char*) malloc(100);
-	//free(x);
-	//free(x);
+	char* x = (char*) malloc(100);
+	free(x);
+	free(x);
 
 	//t trying to free memory not allocated to t.						NOT HANDLED YET
 	//char* t = (char*) malloc(200);
