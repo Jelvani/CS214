@@ -7,6 +7,7 @@
 
 #define _MEMSIZE 4096
 #define _BLOCKSIZE sizeof(int16_t)
+#define _ERRORS 1 //1 for erro printing, 0 for no error printing
 
 /*simulated memory, begins with first 2 bytes of a block as metadata in order:  size of block (int16_t) and the size is negative if block not used, positive if used*/
 static char vmem[_MEMSIZE] = {0,0};//magic number initialization
@@ -32,7 +33,9 @@ void *mymalloc(size_t size, char* file, char* line){//returns null on error, wil
 	}
 
 	if(tmpsize == 0) {//not enough memory!
-		printf("Mymalloc: error in %s at line %d\n",file,line);
+		if(_ERRORS){
+			printf("Mymalloc: error in %s at line %d\n",file,line);
+		}
 		return NULL;
 	} else {
 		int16_t cp = *(int16_t*) ptr;
@@ -89,5 +92,7 @@ void myfree(void* ptr,char* file, char* line){
 		
 		current+= abs(cp) +_BLOCKSIZE;
 	}
-	printf("Myfree: error in %s at line %d\n",file,line);
+	if(_ERRORS){
+		printf("Myfree: error in %s at line %d\n",file,line);
+	}
 }
