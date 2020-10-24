@@ -35,4 +35,20 @@ C Keywords | Check 'n1256.pdf'
 C Single-line and Multi-line comments (ignores these) | /*balhblah*/ and //blahblah
 Quote detection | "all one token" and 'all one token'
 
+***
 ## ++Malloc
+
+A custom implementation of the `Malloc` and `free` functions provided in the C standard library.
+
+### Usage
+ To use `mymalloc.c` simply link your exectuable against this library, and include the `mymalloc.h` header for defeniition and necessary macros.
+
+ To test the runtimes of our program type:
+ ```sh
+make
+```
+in `CS214/Malloc`.
+you can run our example usage program `memgrind` by executing:
+```
+./memgrind
+```
