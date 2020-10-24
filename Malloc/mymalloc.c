@@ -7,11 +7,12 @@
 
 #define _MEMSIZE 4096
 #define _BLOCKSIZE sizeof(int16_t)
+#define _ERRORS 1 //1 for erro printing, 0 for no error printing
 
 /*simulated memory, begins with first 2 bytes of a block as metadata in order:  size of block (int16_t) and the size is negative if block not used, positive if used*/
 static char vmem[_MEMSIZE] = {0,0};//magic number initialization
 
-void *mymalloc(size_t size, char* file, char* line){//returns null on error, will return pointer on succes
+void *mymalloc(size_t size, char* file, int line){//returns null on error, will return pointer on succes
 
 	if(vmem[0] == 0 && vmem[1] == 0){//on first call, create initial metadata
 		int16_t tmp = (int16_t) sizeof(vmem) - _BLOCKSIZE;
@@ -32,7 +33,9 @@ void *mymalloc(size_t size, char* file, char* line){//returns null on error, wil
 	}
 
 	if(tmpsize == 0) {//not enough memory!
-		printf("Mymalloc: error in %s at line %d\n",file,line);
+		if(_ERRORS){
+			printf("Mymalloc: error in %s at line %d\n",file,line);
+		}
 		return NULL;
 	} else {
 		int16_t cp = *(int16_t*) ptr;
@@ -68,7 +71,7 @@ void merge(){//will defrag the memory space
 }
 
 /*The free function will follow the metadata chain to see if given pointer matches any of the addresses*/
-void myfree(void* ptr,char* file, char* line){
+void myfree(void* ptr,char* file, int line){//takes in a pointer of any time, and file
 	
 	if(ptr == NULL)
 		return;
@@ -83,11 +86,24 @@ void myfree(void* ptr,char* file, char* line){
 			}
 			cp*=-1;
 			memcpy(ptr,&cp,_BLOCKSIZE);
-			merge();
+			merge();//look for consecutve free blocks and merge
 			return;
 		}
 		
-		current+= abs(cp) +_BLOCKSIZE;
+		current+= abs(cp) +_BLOCKSIZE;//go to next block
 	}
-	printf("Myfree: error in %s at line %d\n",file,line);
+	if(_ERRORS){
+		printf("Myfree: error in %s at line %d\n",file,line);
+	}
 }
+
+void printPointers(){//function prints all current pointers in vmem
+	char* currentStart = vmem;
+	while(currentStart<&vmem[_MEMSIZE-1]){
+		printf("Block exists at: %p\n",currentStart);
+		currentStart+=abs(*(int16_t*)currentStart)+_BLOCKSIZE;
+	}
+
+}
+
+

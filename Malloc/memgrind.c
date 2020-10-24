@@ -93,11 +93,16 @@ long workloadC() {
 	struct timeval t_start, t_end;
 	time_t t;
 	char* testArray[120];
+	int counter = 0;
 	int numberAllocated = 0;
 	srand((unsigned) time(&t));
 	gettimeofday(&t_start, NULL);
-	while(numberAllocated != 120) {
+	while(counter != 240) {
 		int random = (rand() % 2);
+
+		if(numberAllocated == 120)
+			break;
+
 		if(random == 0) {
 			testArray[numberAllocated] = malloc(1);
 			numberAllocated++;
@@ -107,6 +112,7 @@ long workloadC() {
 				numberAllocated--;
 			}
 		}
+		counter++;
 	}
 
 	for(int i = 0; i < numberAllocated; i++) {
@@ -141,12 +147,12 @@ long workloadD() {
 	free(x);
 
 	//t trying to free memory not allocated to t.						NOT HANDLED YET
-	//char* t = (char*) malloc(200);
-	//free(t + 10);
+	char* t = (char*) malloc(200);
+	free(t + 10);
 
 	//j never allocated by malloc, thus cannot free.					NOT HANDLED YET
-	//int *j;
-	//free(j);
+	int *j;
+	free(j);
 
 	gettimeofday(&t_end, NULL);
 	return getTime(t_start, t_end);
