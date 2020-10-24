@@ -1,0 +1,80 @@
+\documentclass[preprint,16pt,3p]{article}
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage[normalem]{ulem}
+\useunder{\uline}{\ul}{}
+
+\begin{document}
+\title{CS214 Assignment 1}
+\author{Patrick Nogaj, Alborz Jelvani}
+\date{October 25th, 2020}
+\maketitle
+
+\begin{abstract}
+\begin{flushleft}
+This document is project assignment 1: ++Malloc for Systems Programming (01:198:214) at Rutgers University - Fall 2020.
+\end{flushleft}
+\end{abstract}
+
+\section{Setup your Environment}
+Within Asst0.tgz file, we have four files that are utilized to run ++Malloc. 
+
+\begin{flushleft}
+$\textbf{mymalloc.c}$: This is the file that has our methods of $\emph{mymalloc()}$ and $\emph{myfree()}$ to demonstrate the purpose of this assignment. 
+\end{flushleft}
+
+\begin{flushleft}
+$\textbf{mymalloc.h}$: This is a header file which allows us to link methods between files.
+\end{flushleft}
+
+\begin{flushleft}
+$\textbf{memgrind.c}$: This is the primary testing environment for our program. Within this file, we have five different tests and our output to demonstrate the overall efficiency of our program.
+\end{flushleft}
+
+\begin{flushleft}
+$\textbf{Makefile}$: This file allows us to compile and remove the program.
+\end{flushleft}
+
+\begin{flushleft}
+To begin: place mymalloc.c, mymalloc.h, memgrind.c, and Makefile all into the same directory on the iLab machine. Within terminal, type "$\emph{make}$" which will generate an executable called 'memgrind'.
+\end{flushleft}
+
+\begin{flushleft}
+To clean the document, you can type "$\emph{make clean}$" in the terminal, and this will remove the executable memgrind, and any associating files that are related to running memgrind.
+\end{flushleft}
+
+\section{Running ++Malloc}
+To run this program, we can type "$\emph{./memgrind}$" into terminal after we have used the make command in the previous section. Arguments are not required to run this program, however, you may utilize "$\emph{$>$ output.txt}$" to store the output into a file called output.txt which would be in the same directory as the program rather than looking at the output in terminal.
+
+\begin{figure}[h]
+	\includegraphics{images/imageA.png}
+	\centering
+\end{figure}
+
+\begin{flushleft}
+Once ran, we can expect some output generated that will demonstrate the overall effectiveness of the program. Below is a description of each test labeled from A to E to denote what we were testing with the program.
+\end{flushleft}
+
+\begin{flushleft}
+$\textbf{Test A}$: For 120 iterations, we had to malloc() 1 byte, and immediately free it.
+\end{flushleft}
+
+\begin{flushleft}
+$\textbf{Test B}$: For 120 iterations, fill up an array where each index of the array is a single byte that has been malloc(). Once the array has been filled, iterate through the array, and free each 1 byte pointer.
+\end{flushleft}
+
+\begin{flushleft}
+$\textbf{Test C}$: For 240 iterations, randomly choose between malloc() or free() a single byte; however, there are restrictions. Our first restriction: you cannot free() a byte that has not been malloc'd. Our second restriction: once 120 bytes have been malloc'd, immediately free the remainder of the bytes.
+\end{flushleft}
+
+\begin{flushleft}
+$\textbf{Test D}$: This workload is meant to test failure cases that would traditionally cause conflicts with malloc/free. We utilized test cases provided from Asst1.pdf to denote the following issues that may arise with user input.
+\end{flushleft}
+
+\begin{flushleft}
+$\textbf{Test E}$: In workload E, we are looking to test the efficiency of our merging, as it is important for malloc to handle merging of blocks that are not utilized. Please view $\emph{testcases.txt}$ for a more elaborate explaination of workload E.
+\end{flushleft}
+
+\end{document}
