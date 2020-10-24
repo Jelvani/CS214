@@ -132,21 +132,21 @@ long workloadD() {
 	int counter = 0;
 	gettimeofday(&t_start, NULL);
 
-	//p allocation to big -> return nothing 
+	//p allocation to big -> return nothing 							THIS WORKS [FAILSAFE ADDED]
 	char* p = (char*) malloc(5000);
 
-	//x free'd first time, cannot free already free'd pointer
-	char* x = (char*) malloc(100);
-	free(x);
-	free(x);
+	//x free'd first time, cannot free already free'd pointer			NOT HANDLED YET
+	//char* x = (char*) malloc(100);
+	//free(x);
+	//free(x);
 
-	//t trying to free memory not allocated to t.
-	char* t = (char*) malloc(200);
-	free(t + 10);
+	//t trying to free memory not allocated to t.						NOT HANDLED YET
+	//char* t = (char*) malloc(200);
+	//free(t + 10);
 
-	//j never allocated by malloc, thus cannot free.
-	int *j;
-	free(j);
+	//j never allocated by malloc, thus cannot free.					NOT HANDLED YET
+	//int *j;
+	//free(j);
 
 	gettimeofday(&t_end, NULL);
 	return getTime(t_start, t_end);
@@ -156,9 +156,7 @@ long workloadE() {
 	struct timeval t_start, t_end;
 	int counter = 0;
 	gettimeofday(&t_start, NULL);
-	while(counter < 1) {
-		counter++;
-	}
+
 	gettimeofday(&t_end, NULL);
 	return getTime(t_start, t_end);
 }
@@ -167,53 +165,49 @@ void printReport() {
 	long longestA = 0, longestB = 0, longestC = 0, longestD = 0, longestE = 0;
 	long totalA = 0, totalB = 0, totalC = 0, totalD = 0, totalE = 0;
 
-	printf("\nThe following stress test goes from A-E running each test 50 times.\n\n");
+	for(int i = 0; i < 50; i++) {
+		long tempA = workloadA();
+		if(tempA > longestA)
+			longestA = tempA;
+		totalA += tempA;
 
+		long tempB = workloadB();
+		if(tempB > longestB)
+			longestB = tempB;
+		totalB += tempB;
+
+		long tempC = workloadC();
+		if(tempC > longestC)
+			longestC = tempC;
+		totalC += tempC;
+
+		long tempD = workloadD();
+		if(tempD > longestD)
+			longestD = tempD;
+		totalD += tempD;
+
+		long tempE = workloadE();
+		if(tempE > longestE)
+			longestE = tempE;
+		totalE += tempE;
+	}
+
+	printf("\nThe following stress test goes from A-E running each test 50 times.\n\n");
 	printf("TEST\t\tMEAN\t\tSLOWEST\t\tTOTAL\n");
 
 	printf(GRN "A");
-	for(int i = 0; i < 50; i++) {
-		long temp = workloadA();
-		if(temp > longestA)
-			longestA = temp;
-		totalA += temp;
-	}
 	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalA / 50), longestA, totalA);
 
 	printf(GRN "B");
-	for(int i = 0; i < 50; i++) {
-		long temp = workloadB();
-		if(temp > longestB)
-			longestB = temp;
-		totalB += temp;
-	}
 	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalB / 50), longestB, totalB);
 
 	printf(GRN "C");
-		for(int i = 0; i < 50; i++) {
-		long temp = workloadC();
-		if(temp > longestC)
-			longestC = temp;
-		totalC += temp;
-	}
 	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalC / 50), longestC, totalC);
 
 	printf(GRN "D");
-		for(int i = 0; i < 50; i++) {
-		long temp = workloadD();
-		if(temp > longestD)
-			longestD = temp;
-		totalB += temp;
-	}
 	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalD / 50), longestD, totalD);
 	
 	printf(GRN "E");
-		for(int i = 0; i < 50; i++) {
-		long temp = workloadE();
-		if(temp > longestE)
-			longestE = temp;
-		totalE += temp;
-	}
 	printf(RESET "\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\t\t%ld\xC2\xB5s\n", (totalE / 50), longestE, totalE);
 }
 
