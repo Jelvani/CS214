@@ -138,19 +138,21 @@ long workloadD() {
 	int counter = 0;
 	gettimeofday(&t_start, NULL);
 
-	//p allocation to big -> return nothing 							THIS WORKS [FAILSAFE ADDED]
+	//p allocation to big -> return nothing 
 	char* p = (char*) malloc(5000);
 
-	//x free'd first time, cannot free already free'd pointer			NOT HANDLED YET
+	//x free'd first time, cannot free already free'd pointer			
 	char* x = (char*) malloc(100);
 	free(x);
 	free(x);
 
-	//t trying to free memory not allocated to t.						NOT HANDLED YET
+	//t trying to free memory not allocated to t.						
 	char* t = (char*) malloc(200);
 	free(t + 10);
 
-	//j never allocated by malloc, thus cannot free.					NOT HANDLED YET
+	free(t); //actually free t so we can test workloadE()
+
+	//j never allocated by malloc, thus cannot free.					
 	int *j;
 	free(j);
 
@@ -158,10 +160,54 @@ long workloadD() {
 	return getTime(t_start, t_end);
 }
 
+/**
+ * workloadE()
+ * record t_start using gettimeofday()
+ * 
+ * Start by mallocing random size from 1-59 and filling array
+ * After, make a random decision to free chunks from memory.
+ * This allows to create fragmentation between memory.
+ * 
+ * Once fragments are made, try malloc() of a bigger range (29-59)
+ * After filled, free entire array
+ * 
+ * record t_end using gettimeofday()
+ * This will return value in microseconds.
+ */ 
 long workloadE() {
 	struct timeval t_start, t_end;
-	int counter = 0;
+	time_t t;
+	char* testArray[4096];
+	int counter = 0, counter2 = 0;
+	srand((unsigned) time(&t));
 	gettimeofday(&t_start, NULL);
+
+	for(int i = 0; i < 59; i++) {
+		int random = (rand() % 60);
+		testArray[i] =  malloc(random);
+	}
+
+	for(int i = 0; i < 59; i++) {
+		int random = (rand() % 2);
+		if(random == 1) {
+			free(testArray[i]);
+			testArray[i] = NULL;
+		}
+	}
+
+	for(int i = 0; i < 59; i++) {
+		if(testArray[i] == NULL) {
+			int random = (rand() % 30) + 30;
+			testArray[i] = malloc(random);
+		}
+	}
+
+	for(int i = 0; i < 59; i++) {
+		if(testArray[i] != NULL) {
+			free(testArray[i]);
+			testArray[i] = NULL;
+		}
+	}
 
 	gettimeofday(&t_end, NULL);
 	return getTime(t_start, t_end);
@@ -176,22 +222,30 @@ void printReport() {
 		if(tempA > longestA)
 			longestA = tempA;
 		totalA += tempA;
-
+	}
+		
+	for(int i = 0; i < 50; i++) {
 		long tempB = workloadB();
 		if(tempB > longestB)
 			longestB = tempB;
 		totalB += tempB;
+	}
 
+	for(int i = 0; i < 50; i++) {
 		long tempC = workloadC();
 		if(tempC > longestC)
 			longestC = tempC;
 		totalC += tempC;
+	}
 
+	for(int i = 0; i < 50; i++) {
 		long tempD = workloadD();
 		if(tempD > longestD)
 			longestD = tempD;
 		totalD += tempD;
+	}
 
+	for(int i = 0; i < 50; i++) {
 		long tempE = workloadE();
 		if(tempE > longestE)
 			longestE = tempE;
