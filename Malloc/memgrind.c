@@ -9,8 +9,22 @@
 #define RESET "\x1B[0m"
 
 /**
+ * getTime(timeval t_start, timeval t_end)
+ * calculate proper calculation of microseconds due to overflow buffer of tv_usec
+ */
+long getTime(struct timeval t_start, struct timeval t_end) {
+	long secs = t_end.tv_sec - t_start.tv_sec;
+	long micsec = t_end.tv_usec - t_start.tv_usec;
+
+	if(micsec < 0)
+		secs -= 1;
+
+	return (secs * 1000000) + abs(micsec);
+}
+
+/**
  * workloadA()
- * 	record t_start using timeofday()
+ * 	record t_start using gettimeofday()
  *	for 120 cycles,
  *		malloc() 1 byte, immediately free()
  *	record t_end using gettimeofday()
@@ -27,43 +41,56 @@ long workloadA() {
 		counter++;
 	}
 	gettimeofday(&t_end, NULL);
-	return (t_end.tv_usec - t_start.tv_usec);
+	return getTime(t_start, t_end);
 }
 
 /**
  * workloadB()
- * 	record t_start using timeofday()
+ * 	record t_start using gettimeofday()
  *	for 120 cycles,
  *		fill up testArray by mymalloc() 1 byte
 		free entire array with myfree() 1 by 1
  *	record t_end using gettimeofday()
- *	return t_end - t_start
  *	This will return value in microseconds.
  */
 long workloadB() {
 	struct timeval t_start, t_end;
 	char* testArray[120];
-	int counter = 0;
 	gettimeofday(&t_start, NULL);
-	while(counter < 120) {
-		for(int i = 0; i < 120; i++) {
-			testArray[i] = malloc(1);
-		}
+	for(int i = 0; i < 120; i++) {
+		testArray[i] = malloc(1);
+	}
 
-		for(int j = 0; j < 120; j++) {
-			free(testArray[j]);
-		}
-		counter++;
+	for(int j = 0; j < 120; j++) {
+		free(testArray[j]);
 	}
 	gettimeofday(&t_end, NULL);
-	return (t_end.tv_usec - t_start.tv_usec);
+	return getTime(t_start, t_end);
 }
 
+/**
+ * workloadC()
+ * record t_start using gettimeofday()
+ * until number of allocations (mymalloc) equals 120
+ * 		randomly generate a number -> 0 or 1
+ * 		if 0:
+ * 			malloc(1) and store into array
+ * 			increase number of allocations
+ * 		if 1:
+ * 			if number of allocations is greater than 0 (something has been malloc'd prior)
+ * 				free last malloc'd position from array()
+ * 			else
+ * 				do nothing
+ * record t_end using gettimeofday
+ * This will return value in microseconds.
+ */
 long workloadC() {
 	struct timeval t_start, t_end;
+	time_t t;
 	char* testArray[120];
 	int numberAllocated = 0;
 	int counter = 0;
+	srand((unsigned) time(&t));
 	gettimeofday(&t_start, NULL);
 	while(numberAllocated != 120) {
 		int random = (rand() % 2);
@@ -83,7 +110,7 @@ long workloadC() {
 	}
 
 	gettimeofday(&t_end, NULL);
-	return (t_end.tv_usec - t_start.tv_usec);
+	return getTime(t_start, t_end);
 }
 
 long workloadD() {
@@ -94,7 +121,7 @@ long workloadD() {
 		counter++;
 	}
 	gettimeofday(&t_end, NULL);
-	return (t_end.tv_usec - t_start.tv_usec);
+	return getTime(t_start, t_end);
 }
 
 long workloadE() {
@@ -105,7 +132,7 @@ long workloadE() {
 		counter++;
 	}
 	gettimeofday(&t_end, NULL);
-	return (t_end.tv_usec - t_start.tv_usec);
+	return getTime(t_start, t_end);
 }
 
 void printReport() {
