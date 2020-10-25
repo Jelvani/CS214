@@ -7,13 +7,15 @@
 
 #define _MEMSIZE 4096
 #define _BLOCKSIZE sizeof(int16_t)
-#define _ERRORS 1 //1 for erro printing, 0 for no error printing
+#define _ERRORS 0 //1 for erro printing, 0 for no error printing
 
 /*simulated memory, begins with first 2 bytes of a block as metadata in order:  size of block (int16_t) and the size is negative if block not used, positive if used*/
 static char vmem[_MEMSIZE] = {0,0};//magic number initialization
 
 void *mymalloc(size_t size, char* file, int line){//returns null on error, will return pointer on succes
-
+	if(size<1){
+		return NULL;
+	}
 	if(vmem[0] == 0 && vmem[1] == 0){//on first call, create initial metadata
 		int16_t tmp = (int16_t) sizeof(vmem) - _BLOCKSIZE;
 		tmp*=-1;
@@ -55,16 +57,21 @@ void *mymalloc(size_t size, char* file, int line){//returns null on error, will 
 void merge(){//will defrag the memory space
 	char* currentStart = vmem;
 	char* currentEnd = vmem;
-	while(currentStart<&vmem[_MEMSIZE-1]){
+	while(currentStart < (&vmem[_MEMSIZE-1])){
 		if(*(int16_t*)currentStart < 0){//start of open block
 			currentEnd=currentStart;
-			while(*(int16_t*)currentEnd < 0){
+			while(currentEnd < &vmem[_MEMSIZE-1]){
+				if(*(int16_t*)currentEnd >= 0 ){
+					break;
+				}
 				int16_t size = abs(*(int16_t*)currentEnd);
 				currentEnd+=size+_BLOCKSIZE;
+				
 			}
 			int16_t diff = currentEnd - currentStart - _BLOCKSIZE;
 			diff*=-1;
 			memcpy(currentStart,&diff,_BLOCKSIZE);
+			
 		}
 		currentStart+=abs(*(int16_t*)currentStart)+_BLOCKSIZE;
 	}

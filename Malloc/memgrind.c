@@ -104,7 +104,7 @@ long workloadC() {
 			break;
 
 		if(random == 0) {
-			testArray[numberAllocated] = malloc(1);
+			testArray[numberAllocated] = (char*)malloc(1);
 			numberAllocated++;
 		} else {
 			if(numberAllocated > 0) {
@@ -177,7 +177,7 @@ long workloadD() {
 long workloadE() {
 	struct timeval t_start, t_end;
 	time_t t;
-	char* testArray[4096];
+	char* testArray[200];
 	int counter = 0, counter2 = 0;
 	srand((unsigned) time(&t));
 	gettimeofday(&t_start, NULL);
@@ -185,7 +185,7 @@ long workloadE() {
 	//Randomly malloc from size 1-59 in testArray
 	for(int i = 0; i < 59; i++) {
 		int random = (rand() % 60);
-		testArray[i] =  malloc(random);
+		testArray[i] = (char*) malloc(random);
 	}
 
 	//Random choose number, and free if random == 1.
@@ -198,15 +198,17 @@ long workloadE() {
 		}
 	}
 
+
 	//Randomly malloc from size 29-59 in testArray
 	for(int i = 0; i < 59; i++) {
 		if(testArray[i] == NULL) {
 			int random = (rand() % 30) + 30;
-			testArray[i] = malloc(random);
+			testArray[i] = (char*) malloc(random);
 		}
 	}
 
 	//Empty out remainder of array
+	
 	for(int i = 0; i < 59; i++) {
 		if(testArray[i] != NULL) {
 			free(testArray[i]);
@@ -232,36 +234,41 @@ void printReport() {
 
 	for(int i = 0; i < 50; i++) {
 		long tempA = workloadA();
-		if(tempA > longestA)
+		if(tempA > longestA){
 			longestA = tempA;
+		}
 		totalA += tempA;
 	}
 		
 	for(int i = 0; i < 50; i++) {
 		long tempB = workloadB();
-		if(tempB > longestB)
+		if(tempB > longestB){
 			longestB = tempB;
+		}
 		totalB += tempB;
 	}
 
 	for(int i = 0; i < 50; i++) {
 		long tempC = workloadC();
-		if(tempC > longestC)
+		if(tempC > longestC){
 			longestC = tempC;
+		}
 		totalC += tempC;
 	}
 
 	for(int i = 0; i < 50; i++) {
 		long tempD = workloadD();
-		if(tempD > longestD)
+		if(tempD > longestD){
 			longestD = tempD;
+		}
 		totalD += tempD;
 	}
 
 	for(int i = 0; i < 50; i++) {
 		long tempE = workloadE();
-		if(tempE > longestE)
+		if(tempE > longestE){
 			longestE = tempE;
+		}
 		totalE += tempE;
 	}
 
@@ -286,5 +293,5 @@ void printReport() {
 
 int main() {
 	printReport();
-	return 0;
+	return EXIT_SUCCESS;
 }
