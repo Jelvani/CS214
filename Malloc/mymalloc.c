@@ -13,7 +13,7 @@
 static char vmem[_MEMSIZE] = {0,0};//magic number initialization
 
 void *mymalloc(size_t size, char* file, int line){//returns null on error, will return pointer on succes
-	if(size<1){
+	if(size < 1) {
 		return NULL;
 	}
 	if(vmem[0] == 0 && vmem[1] == 0){//on first call, create initial metadata
@@ -66,12 +66,10 @@ void merge(){//will defrag the memory space
 				}
 				int16_t size = abs(*(int16_t*)currentEnd);
 				currentEnd+=size+_BLOCKSIZE;
-				
 			}
 			int16_t diff = currentEnd - currentStart - _BLOCKSIZE;
 			diff*=-1;
-			memcpy(currentStart,&diff,_BLOCKSIZE);
-			
+			memcpy(currentStart,&diff,_BLOCKSIZE);	
 		}
 		currentStart+=abs(*(int16_t*)currentStart)+_BLOCKSIZE;
 	}
@@ -79,7 +77,6 @@ void merge(){//will defrag the memory space
 
 /*The free function will follow the metadata chain to see if given pointer matches any of the addresses*/
 void myfree(void* ptr,char* file, int line){//takes in a pointer of any time, and file
-	
 	if(ptr == NULL)
 		return;
 
@@ -110,7 +107,4 @@ void printPointers(){//function prints all current pointers in vmem
 		printf("Block exists at: %p\n",currentStart);
 		currentStart+=abs(*(int16_t*)currentStart)+_BLOCKSIZE;
 	}
-
 }
-
-

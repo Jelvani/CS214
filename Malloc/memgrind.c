@@ -198,7 +198,6 @@ long workloadE() {
 		}
 	}
 
-
 	//Randomly malloc from size 29-59 in testArray
 	for(int i = 0; i < 59; i++) {
 		if(testArray[i] == NULL) {
@@ -208,7 +207,6 @@ long workloadE() {
 	}
 
 	//Empty out remainder of array
-	
 	for(int i = 0; i < 59; i++) {
 		if(testArray[i] != NULL) {
 			free(testArray[i]);
