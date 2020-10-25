@@ -5,6 +5,7 @@
 \usepackage{booktabs}
 \usepackage[normalem]{ulem}
 \useunder{\uline}{\ul}{}
+\usepackage{bytefield}
 
 \begin{document}
 \title{CS214 Assignment 1}
@@ -42,7 +43,7 @@ To begin: place mymalloc.c, mymalloc.h, memgrind.c, and Makefile all into the sa
 \end{flushleft}
 
 \begin{flushleft}
-To clean the document, you can type "$\emph{make clean}$" in the terminal, and this will remove the executable memgrind, and any associating files that are related to running memgrind.
+To clean the document, you can type \texttt{`make clean'} in the terminal, and this will remove the executable memgrind, and any associating files that are related to running memgrind.
 \end{flushleft}
 
 \section{Running ++Malloc}
@@ -74,18 +75,40 @@ $\textbf{Test D}$: This workload is meant to test failure cases that would tradi
 \end{flushleft}
 
 \begin{flushleft}
-$\textbf{Test E}$: In workload E, we are looking to test the efficiency of our merging, as it is important for malloc to handle merging of blocks that are not utilized. Please view $\emph{testcases.txt}$ for a more elaborate explaination of workload E.
+$\textbf{Test E}$: In workload E, we are looking to test the efficiency of our merging, as it is important for malloc to handle merging of blocks that are not utilized. Please view $\emph{testcases.txt}$ for a more elaborate explanation of workload E.
 \end{flushleft}
 
 \begin{flushleft}
-Each workload will be completed 50 times, and total time will be accumlated and divided by total workload to obtain average time for workload to complete. The output display will show the average, slowest, and total runtime for each workload from A to E. The units that these tests are measured in are $\mu$s.
+Each workload will be completed 50 times, and total time will be accumulated and divided by total workload to obtain average time for workload to complete. The output display will show the average, slowest, and total run time for each workload from A to E. The units that these tests are measured in are $\mu$s.
 \end{flushleft}
 
 \section{Design Implementation}
-In this section, we will discuss the design implementation in regarding metadata design and any other features that we deemed needed more explaination.
+In this section, we will discuss the design implementation in regarding metadata design and any other features that we deemed needed more explanation.
 
 \begin{flushleft}
-METADATA DESIGN -->
-\end{flushleft}
+\textbf{Metadata Design:} In choosing an efficient method to keep track of how much data each pointer allocated in our fixed array is associated with, the design decision was made to use a 2-byte metadata that could be created in the form of \texttt{int16\_t}, which is a 16-bit signed integer available in the \texttt{stdint.h} header file. In our 4096-byte virtual memory, we will have this 2-byte integer before every block of memory, and the metadata will simply represent a the amount of space available in the space ahead of it, with the first 2 bytes of our virtual memory always being a metadata value. With this design, when we need to find all pointers, we can simply extract the integer value at the first 2-bytes of our 4096-byte virtual memory, and traverse our way down to the next metadata in a linked list fashion. Even more so, we also need to be able to represent when a block of memory is available or not, and this can cleverly be represented in our metadata without the use of pointer arithmetic. For an available block, the metadata is a positive integer representing the size. For an unavailable block, the metadata is just the negative, with the absolute value representing the size of the block.
+\begin{figure}[h]
+    \centering
+    \newcommand\bithead[2]{\bitbox[]{#1}{\scriptsize\bfseries #2}}
+        \begin{bytefield}[bitwidth=1.5em]{24}
+          \bithead{3}{2} &
+          \bithead{4}{40} &
+          \bithead{4}{2} &
+          \bithead{5}{70} &
+          \bithead{5}{2} &
+          \bithead{3}{100}\\
+          \bitbox{3}{40} &
+          \bitbox{4}{Data} &
+          \bitbox{4}{70} &
+          \bitbox{5}{Data} &
+          \bitbox{5}{-100} &
+          \bitbox{3}{Free}\\
+        \end{bytefield}
+    \caption{Sample memory layout}
+    \label{fig:my_label}
+\end{figure}
 
+
+\textbf{Memory Defragmentation:} When our free function is used, it will simply subtract 2 bytes from the given pointer, cast the pointer to type \texttt{int16\_t*}, and then dereference the pointer to obtain the block size. Free will perform this, then flip the integer to a negative, and store it back at the location with the \texttt{memcpy()} function. The problem arises when we have adjacent blocks that are free. In this case, they need to be merged, or over the usage of the virtual memory, we will converge to smaller and smaller regions.This is fixed with our \texttt{merge()} function, which is called in the \texttt{myfree()} function. Merge simply checks for all adjacent free blocks, and will replace the first metadata of these blocks with the total size of the adjacent bytes that are free. This ensures that maximum space can be used by calls to \texttt{mymalloc()}.
+\end{flushleft}
 \end{document}
