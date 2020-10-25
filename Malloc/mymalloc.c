@@ -7,7 +7,7 @@
 
 #define _MEMSIZE 4096
 #define _BLOCKSIZE sizeof(int16_t)
-#define _ERRORS 0 //1 for error printing, 0 for no error printing
+#define _ERRORS 1 //1 for error printing, 0 for no error printing
 
 /*simulated memory, begins with first 2 bytes of a block as metadata. Each memory block that is malloced, begins with 2 bytes as a int16_t with posative number representing size of block that is in use, and negative is size of block not in use.*/
 

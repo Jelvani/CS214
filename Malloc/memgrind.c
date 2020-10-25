@@ -95,27 +95,33 @@ long workloadC() {
 	char* testArray[120];
 	int counter = 0;
 	int numberAllocated = 0;
+	int numberAvailable = 0;
 	srand((unsigned) time(&t));
 	gettimeofday(&t_start, NULL);
-	while(counter != 240) {
-		int random = (rand() % 2);
 
-		if(numberAllocated == 120)
+	for(int i=0;i<240;i++){
+		int random = (rand() % 2);
+		if(numberAllocated == 120){
 			break;
+		}
 
 		if(random == 0) {
-			testArray[numberAllocated] = (char*)malloc(1);
+			testArray[numberAvailable] = (char*)malloc(1);
 			numberAllocated++;
+			numberAvailable++;
 		} else {
-			if(numberAllocated > 0) {
-				free(testArray[numberAllocated - 1]);
-				numberAllocated--;
+			if(numberAvailable > 0) {
+				free(testArray[numberAvailable]);
+				numberAvailable--;
+			}else{
+				testArray[numberAvailable] = (char*)malloc(1);
+				numberAllocated++;
+				numberAvailable++;
 			}
 		}
 		counter++;
 	}
-
-	for(int i = 0; i < numberAllocated; i++) {
+	for(int i = 0; i < 120; i++) {
 		free(testArray[i]);
 	}
 
