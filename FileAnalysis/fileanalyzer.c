@@ -11,7 +11,22 @@
 #define BLU   "\x1b[94m"
 #define RESET "\x1B[0m"
 
-pthread_mutex_t lock;
+
+
+pthread_mutex_t lock;//lock used for adding new node to 'file' linked list
+
+struct file{
+	char* path;
+	int tokCount;
+	struct file* next;
+	struct token* token;
+	};
+
+struct token{
+	char* value;
+	double prob;
+	struct token* next;
+};
 
 void* findDir(char* directory) {
     DIR *dir;
@@ -19,7 +34,7 @@ void* findDir(char* directory) {
     struct stat sb;
     int vCounter = 0;
     char* values[100];
-
+	printf("%s\n",directory);
     //checks to see if can open directory, if not fail it.
     if((dir = opendir(realpath(directory,NULL))) == NULL) {
 		printf("ERR: cannot open current directory");
@@ -65,29 +80,25 @@ int main(int argc, char *argv[]) {
     }
 
     DIR *dir;
-
-    //checks to see if can open directory, if not fail it.
-    if((dir = opendir(realpath(argv[1],NULL))) == NULL) {
-        printf(RESET);
-		printf("ERR: cannot open current directory");
-		exit(1);
-	} else {
-        printf(RESET);
-        printf("Initializing data structure and mutex lock...\n");
-
+	struct file files;
+	files.next=NULL;
+	files.token=NULL;
         //initializes mutex lock for synch
-        if (pthread_mutex_init(&lock, NULL) != 0) { 
+        if(pthread_mutex_init(&lock, NULL) != 0) { 
             printf("mutex init has failed\n"); 
             return 1; 
         } 
-        printf("Mutex initialized.\n");
 
-        printf("Data structure initialized.\n\n");
-    }
+    char* fullpath;
+	if((fullpath=realpath(argv[1], NULL))==NULL){
+		printf(RED "The path: '%s' is invalid!\n",argv[1]);
+		printf(RESET);
+		return EXIT_FAILURE;
+	}
 
-    //does not need to be thread as per instruction (1.c)
-    findDir(realpath(argv[1], NULL));
-    
+	//does not need to be thread as per instruction (1.c)
+    findDir(fullpath);
+    free(fullpath);//realpath uses malloc, so we must deallocate used memory
     printf(RESET);
     return EXIT_SUCCESS;
 }
