@@ -37,6 +37,8 @@ struct threadArg{
 void* fileHandle(void* directory){
 	struct threadArg* args = (struct threadArg*) directory;
 	printf("FILE HANDLE: %s\n",args->dir);
+	free(args->dir);
+	free(args);
 	return 0;
 }
 void* findDir(void* directory) {
@@ -93,12 +95,13 @@ void* findDir(void* directory) {
         printf(RESET);
     }
     closedir(dir);
-	for(int i=0; i<trdCnt; i++){
+	for(int i=0; i<trdCnt-1; i++){
 		pthread_join(thread_list[i],NULL);
 	}
     
 	free(args->dir);
 	free(thread_list);
+	free(args);
 	return 0;
 }
 
@@ -115,10 +118,10 @@ int main(int argc, char *argv[]) {
 	files.next=NULL;
 	files.token=NULL;
 	
-	struct threadArg args;
-	args.lock = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
+	struct threadArg* args = (struct threadArg*) malloc(sizeof(struct threadArg));
+	args->lock = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
         //initializes mutex lock for synch
-        if(pthread_mutex_init(args.lock, NULL) != 0) { 
+        if(pthread_mutex_init(args->lock, NULL) != 0) { 
             printf("mutex init has failed\n"); 
             return 1; 
         } 
@@ -131,11 +134,11 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 	
-	args.dir = fullpath;
-	args.head = &files;
+	args->dir = fullpath;
+	args->head = &files;
 		//does not need to be thread as per instruction (1.c)
 	
-    findDir((void*) &args);
+    findDir((void*) args);
     printf(RESET);
     return EXIT_SUCCESS;
 }
