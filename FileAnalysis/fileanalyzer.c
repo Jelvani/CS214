@@ -37,6 +37,28 @@ struct threadArg{
 void* fileHandle(void* directory){
 	struct threadArg* args = (struct threadArg*) directory;
 	printf("FILE HANDLE: %s\n",args->dir);
+	//attempt to open file
+	int fd;
+
+	if((fd = open(args->dir,O_RDONLY)) == -1){
+		printf("ERR: cannot open file %s\n",args->dir);
+	}else{
+		int bufIncr = 256;
+		int rs = 0;
+		char buf* = (char*) malloc(bufIncr);
+		int bfsz = 0;
+		while((rs = read(fd,buf,bufIncr)) > 0){
+
+			bfsz+=rs;
+		}
+
+	}
+
+
+
+
+
+	close(fd);
 	free(args->dir);
 	free(args);
 	return 0;
