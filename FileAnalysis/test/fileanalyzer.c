@@ -50,22 +50,18 @@ void* fileHandle(void* directory){
 		int rs = 0;
 		char* buf = (char*) malloc(bufIncr);
 		int bfsz = 0;
-		char* file = NULL;
-		//while file has more bytes, copy n bytes from from 256byte buffer into dynamically resizable array
+		char* file = (char*) malloc(bufIncr);
+		memset(file,'\0',bufIncr);
 		while((rs = read(fd,buf,bufIncr)) > 0){
 			bfsz+=rs;
 			file = (char*) realloc(file,bfsz);
-			memcpy(file+bfsz-rs,buf,rs);
-		}
+			strcat(file,buf);
+			
 
-		
-		if(file!=NULL){
-			free(file);
-			//printf("%s\n",file);
 		}
-		
+		printf("%s\n",file);
 		free(buf);
-		
+		free(file);
 
 	}
 
