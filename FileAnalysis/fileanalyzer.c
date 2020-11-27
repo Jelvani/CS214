@@ -36,6 +36,14 @@ struct threadArg{
 };
 
 
+
+
+//inserts token into shared memory structure using insertion sort
+void insertToken(struct threadArg* args, char* token){
+
+}
+
+
 void* fileHandle(void* directory){
 	struct threadArg* args = (struct threadArg*) directory;
 	printf("FILE HANDLE: %s\n",args->dir);
@@ -58,12 +66,20 @@ void* fileHandle(void* directory){
 			memcpy(file+bfsz-rs,buf,rs);
 		}
 
-		
-		if(file!=NULL){
-			free(file);
-			//printf("%s\n",file);
+		if(file==NULL){
+			free(buf);
+			return 0;
+		}
+
+		//strtok will allocate memory for each token it returns
+		char* token = strtok(file," ");
+		while(token!=NULL){
+			printf("%p\n",token);
+			token = strtok(NULL," ");
+			insertToken(args,token);
 		}
 		
+		free(file);
 		free(buf);
 		
 
