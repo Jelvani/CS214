@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
-
+#include <ctype.h>
 #define RED   "\x1B[31m"
 #define GRN   "\e[1;92m"
 #define BLU   "\x1b[94m"
@@ -39,10 +39,56 @@ struct threadArg{
 
 
 //inserts token into shared memory structure using insertion sort
-void insertToken(struct threadArg* args, char* token){
+void insertToken(struct file* file, char* token){
+	file->tokCount++;
+	//if first token, insert and return
+	if(file->token == NULL){
+		char* tok = (char*) malloc(strlen(token) + 1);
+		strcpy(tok,token);
+		file->token = (struct token*) malloc(sizeof(struct token));
+		file->token->next = NULL;
+		file->token->value = tok;
+		file->token->prob = 1;
+		return;
+	}
+	//if token is less than first value in list
+	if(strcmp(token,file->token->value) < 0){
+		char* tok = (char*) malloc(strlen(token) + 1);
+		strcpy(tok,token);
+		struct token* tmp = file->token;
+		file->token = (struct token*) malloc(sizeof(struct token));
+		file->token->next = tmp;
+		file->token->value = tok;
+		file->token->prob = 1;
+		return;
+	}
+
+	// all other cases, insertion sort
+	struct token* tmp = file->token;
+	struct token* prev = tmp;
+	while(tmp->next!=NULL){
+		if(strcmp(token,tmp->value) < 0){
+			char* tok = (char*) malloc(strlen(token) + 1);
+			strcpy(tok,token);
+			prev->next  = (struct token*) malloc(sizeof(struct token));
+			prev->next->value = tok;
+			prev->next->next = tmp;
+			prev->next->prob = 1;
+			return;
+		}else if(strcmp(token,tmp->value) == 0){
+			tmp->prob++;
+			return;
+		}
+		prev = tmp;
+		tmp=tmp->next;
+	}
+	tmp->next = (struct token*) malloc(sizeof(struct token));
+	tmp->next->next=NULL;
+	tmp->next->value = (char*) malloc(strlen(token) + 1);
+	strcpy(tmp->next->value,token);
+	tmp->next->prob = 1;
 
 }
-
 
 void* fileHandle(void* directory){
 	struct threadArg* args = (struct threadArg*) directory;
@@ -65,23 +111,55 @@ void* fileHandle(void* directory){
 			file = (char*) realloc(file,bfsz);
 			memcpy(file+bfsz-rs,buf,rs);
 		}
-
+		//if file is empty, return
 		if(file==NULL){
 			free(buf);
 			return 0;
 		}
 
-		//strtok will allocate memory for each token it returns
-		char* token = strtok(file," ");
-		while(token!=NULL){
-			printf("%p\n",token);
-			token = strtok(NULL," ");
-			insertToken(args,token);
+		//convert to lower case
+		int len = strlen(file)+1;
+		for(int i =0;i<len;i++){
+			file[i] = tolower(file[i]);
+			if(isalpha(file[i])==0 && isspace(file[i])==0){//if char is not alphabetic or a whitespace
+			
+				memcpy(&file[i],&file[i+1],len-i);//memmove for overlapping vs memcpy
+				
+			}
 		}
-		
+
+		//set shared data structure head to end of LL
+		pthread_mutex_lock(args->lock);
+		struct file* tmp = args->head;
+		while(tmp->next!=NULL){
+			tmp = tmp->next;
+		}	
+		//allocate new file node
+		tmp->next = (struct file*) malloc(sizeof(struct file));
+		tmp->next->next = NULL;
+		tmp->next->token = NULL;
+		tmp->next->tokCount = 0;
+		pthread_mutex_unlock(args->lock);
+		//copy file path/name to file node
+		tmp->next->path = (char*) malloc(strlen(args->dir)+1);
+		strcpy(tmp->next->path, args->dir);
+
+		//strtok will allocate memory for each token it returns
+		char* token = strtok(file," \t\n");
+		while(token!=NULL){
+			insertToken(tmp->next,token);
+			token = strtok(NULL," \t\n");
+		}
+		//after done inserting, compute discrete probabilities
+		struct token* curtok = tmp->next->token;
+		while(curtok!=NULL){
+			curtok->prob = (curtok->prob) / tmp->next->tokCount;
+			curtok = curtok->next;
+		}
+
+		//remove file and buffer from memory
 		free(file);
 		free(buf);
-		
 
 	}
 
@@ -112,7 +190,7 @@ void* findDir(void* directory) {
             if(strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) {
                 continue;
             }
-			
+			//create argument structure and spawn new directory thread
 			struct threadArg* new_args = (struct threadArg*) malloc(sizeof(struct threadArg));
             new_args->dir = (char*) malloc(strlen(args->dir) + strlen(dp->d_name) + 2);
 			strcpy(new_args->dir,args->dir);
@@ -163,9 +241,6 @@ int main(int argc, char *argv[]) {
     }
 
     DIR *dir;
-	struct file files;
-	files.next=NULL;
-	files.token=NULL;
 	
 	struct threadArg* args = (struct threadArg*) malloc(sizeof(struct threadArg));
 	args->lock = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
@@ -184,10 +259,24 @@ int main(int argc, char *argv[]) {
 	}
 	
 	args->dir = fullpath;
-	args->head = &files;
+	args->head = (struct file*) malloc(sizeof(struct file));
 		//does not need to be thread as per instruction (1.c)
 	
     findDir((void*) args);
+	
+
+//sample loop going through all files and tokens in our shared data structure	
+	while(args->head!=NULL){
+		printf("FILE: %s\n", args->head->path);
+		while(args->head->token!=NULL){
+			printf("TOKEN: %s WITH PROB: %f\n",args->head->token->value,args->head->token->prob);
+			args->head->token = args->head->token->next;
+		}
+		args->head = args->head->next;
+	}
+	
+	
+
     printf(RESET);
     return EXIT_SUCCESS;
 }
