@@ -104,6 +104,9 @@ double calculate(struct file* file1, struct file* file2) {
 
 //inserts token into shared memory structure using insertion sort
 void insertToken(struct file* file, char* token){
+	if(strcmp(token,"nss")==0){
+		printf("found!\n");
+	}
 	file->tokCount++;
 		
 	//if first token, insert and return
@@ -118,72 +121,55 @@ void insertToken(struct file* file, char* token){
 		file->token->prob = 1;
 		return;
 	}
-	struct token* ptr = (struct token*) malloc(sizeof(struct token));
-	ptr = file->token;
-	if(strcmp(ptr->value,token)==0){
-		ptr->prob++;
-		return;
-	}
-	while(ptr->next!=NULL){
-		if(strcmp(ptr->value,token)==0){
-			ptr->prob++;
-			return;
-		}
-		ptr = ptr->next;
-	}
-	if(strcmp(ptr->value,token)==0){
-		ptr->prob++;
-		return;
-	}
+	
 
-	ptr->next = (struct token*) malloc(sizeof(struct token));
-	ptr->next->value = (char*) malloc(strlen(token) + 1);
-	ptr->next->next = NULL;
-	strcpy(ptr->next->value,token);
-	ptr->next->prob ++;
-
-	/*
 	//if token is less than first value in list
 	if(strcmp(token,file->token->value) < 0){
-		//printf("LESS: %s\n",token);
+		struct token* prev = file->token;
 		char* tok = (char*) malloc(strlen(token) + 1);
 		strcpy(tok,token);
-		struct token* tmp = file->token;
 		file->token = (struct token*) malloc(sizeof(struct token));
-		file->token->next = tmp;
+		file->token->next = prev;
 		file->token->value = tok;
 		file->token->prob = 1;
 		return;
 	}
 
-	// all other cases, insertion sort
-	struct token* tmp = file->token;
-	struct token* prev = tmp;
+	//we now know file->token is not null, so assign it to a pointer
+	struct token* ptr = file->token;
+	struct token* prev = ptr;
 	
-	while(tmp->next!=NULL){
-		if(strcmp(token,tmp->value) < 0){
-			//printf("NEW: %s\n",token);
+	while(ptr!=NULL){
+		//if token less than current, insert inbetween prev and current
+		if(strcmp(token,ptr->value) < 0){
 			char* tok = (char*) malloc(strlen(token) + 1);
 			strcpy(tok,token);
 			prev->next  = (struct token*) malloc(sizeof(struct token));
 			prev->next->value = tok;
-			prev->next->next = tmp;
+			prev->next->next = ptr;
 			prev->next->prob = 1;
 			return;
-		}else if(strcmp(token,tmp->value) == 0){
-			//printf("EXISTS: %s\n",token);
-			tmp->prob++;
+		}else if(strcmp(token,ptr->value) == 0){
+			ptr->prob++;
 			return;
 		}
-		prev = tmp;
-		tmp=tmp->next;
+		prev = ptr;
+		ptr=ptr->next;
 	}
-	tmp->next = (struct token*) malloc(sizeof(struct token));
-	tmp->next->next=NULL;
-	tmp->next->value = (char*) malloc(strlen(token) + 1);
-	strcpy(tmp->next->value,token);
-	tmp->next->prob = 1;
-	*/
+	ptr = prev;
+	//compare to last node before creating new node
+		if(strcmp(token,ptr->value) == 0){
+			ptr->prob++;
+			return;
+		}
+
+	//if token is at end of list, create new node.
+	ptr->next = (struct token*) malloc(sizeof(struct token));
+	ptr->next->next=NULL;
+	ptr->next->value = (char*) malloc(strlen(token) + 1);
+	strcpy(ptr->next->value,token);
+	ptr->next->prob = 1;
+	return;
 
 }
 
