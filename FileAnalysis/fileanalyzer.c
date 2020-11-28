@@ -105,8 +105,7 @@ double calculate(struct file* file1, struct file* file2) {
 //inserts token into shared memory structure using insertion sort
 void insertToken(struct file* file, char* token){
 	file->tokCount++;
-
-
+		
 	//if first token, insert and return
 
 	if(file->token == NULL){
@@ -141,7 +140,7 @@ void insertToken(struct file* file, char* token){
 	ptr->next->value = (char*) malloc(strlen(token) + 1);
 	ptr->next->next = NULL;
 	strcpy(ptr->next->value,token);
-	ptr->next->prob = 1;
+	ptr->next->prob ++;
 
 	/*
 	//if token is less than first value in list
@@ -218,24 +217,25 @@ void* fileHandle(void* directory){
 		int tokbuf = 256;//initial maximum token size
 		char* token = (char*) malloc(tokbuf);
 		int ind = 0;//index of current token
-		char flag = 0;
 		//this loop will read characters 1 by 1 from file and when reaches a whitespace, send token to be inserted. then repeat until EOF
 		while((rs = read(fd,&buf,1)) > 0){
+
 			if(isalpha(buf)==0 && isspace(buf)==0 && (buf!= '-')){//if char is not alphabetic or a whitespace and not a hyphen then skip it
 				continue;	
+				
 			}
+			
 			//when we encounter a whitespace,add terminator and send token to insertToken()
-			if(isspace(buf)){
-				if(flag){
+			if(isalpha(buf)==0){
+				if(ind==0){
 					continue;
 				}
-				flag = 1;
 				token[ind] = '\0';
-				ind = 0;
 				insertToken(tmp->next,token);
+				ind = 0;
 				continue;
 			}
-			flag = 0;
+
 			buf = tolower(buf);
 			token[ind] = buf;
 			ind++;
@@ -246,6 +246,10 @@ void* fileHandle(void* directory){
 				token = (char*) realloc(token, tokbuf);
 			}
 		}
+		if(isspace(buf)==0){
+			insertToken(tmp->next,token);
+		}
+
 
 		
 
