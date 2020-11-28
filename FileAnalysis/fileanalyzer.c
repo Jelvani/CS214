@@ -380,7 +380,7 @@ int main(int argc, char *argv[]) {
 			} else {
 				printf(WHT "%f ", result);
 			}
-			printf(RESET "for \"%s\" and \"%s\"\n", strrchr(file1->path, '/') + 1, strrchr(file2->path, '/') + 1);
+			printf(RESET "for \"%s\" and \"%s\"\n", file1->path, file2->path);
 			file2 = file2->next;
 		}
 		file1 = file1->next;
