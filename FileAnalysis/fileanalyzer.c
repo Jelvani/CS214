@@ -37,9 +37,9 @@ struct threadArg{
 	struct file* head;
 };
 
-double calculate(struct file file1, struct file file2) {
-	struct token* token1 = file1.token;
-	struct token* token2 = file2.token;
+double calculate(struct file* file1, struct file* file2) {
+	struct token* token1 = file1->token;
+	struct token* token2 = file2->token;
 	
 	double file1kld = 0.0;
 	double file2kld = 0.0;
@@ -66,12 +66,12 @@ double calculate(struct file file1, struct file file2) {
 			constructedMean = (token1->prob + token2Prob) / 2;
 			file1kld += token1->prob * log10(token1->prob / constructedMean);
 		}
-		token2 = file2.token;
+		token2 = file2->token;
 		token1 = token1->next;
 	}
 
-	token1 = file1.token;
-	token2 = file2.token;
+	token1 = file1->token;
+	token2 = file2->token;
 
 	while(token2 != NULL) {
 		char* currToken = token2->value;
@@ -94,7 +94,7 @@ double calculate(struct file file1, struct file file2) {
 			constructedMean = (token2->prob + token1Prob) / 2;
 			file2kld += token2->prob * log10(token2->prob / constructedMean);
 		}
-		token1 = file1.token;
+		token1 = file1->token;
 		token2 = token2->next;
 	}
 
@@ -357,41 +357,27 @@ int main(int argc, char *argv[]) {
 	
 
 //sample loop going through all files and tokens in our shared data structure	
-	while(args->head!=NULL){
+	/*while(args->head!=NULL){
 		printf("FILE: %s\n", args->head->path);
 		while(args->head->token!=NULL){
 			printf("TOKEN: %s WITH PROB: %f\n",args->head->token->value,args->head->token->prob);
 			args->head->token = args->head->token->next;
 		}
 		args->head = args->head->next;
-	}
+	}*/
 	
-	
-	/*struct file file1;
-	file1.token = malloc(sizeof(struct token));
-	file1.tokCount = 4;
-	file1.token->value = "hi";
-	file1.token->prob = 0.5;
-	file1.token->next = malloc(sizeof(struct token));
-	file1.token->next->value = "there";
-	file1.token->next->prob = 0.5;
-	file1.token->next->next = NULL;
+	struct file* file1 = (struct file*) args->head->next;
+	struct file* file2 = (struct file*) args->head->next->next;
 
-	//c.txt, hi = prob 0.5, out = prob 0.25, there = prob 0.25
-	struct file file2;
-	file2.token = malloc(sizeof(struct token));
-	file2.tokCount = 4;
-	file2.token->value = "hi";
-	file2.token->prob = 0.5;
-	file2.token->next = malloc(sizeof(struct token));
-	file2.token->next->value = "out";
-	file2.token->next->prob = 0.25;
-	file2.token->next->next = malloc(sizeof(struct token));
-	file2.token->next->next->value = "there";
-	file2.token->next->next->prob = 0.25;
-	file2.token->next->next->next = NULL;
-	double result = calculate(file1, file2);
-	printf("Result for file1 and file2 is: %f\n", result);*/
+	while(file1 != NULL) {
+		while(file2 != NULL) {
+			double result = calculate(file1, file2);
+			printf("distance %f for %s and %s\n", result, file1->path, file2->path);
+			file2 = file2->next;
+		}
+		file1 = file1->next;
+		file2 = file1->next;
+	}
 
     printf(RESET);
     return EXIT_SUCCESS;
