@@ -38,63 +38,64 @@ struct threadArg{
 };
 
 double calculate(struct file file1, struct file file2) {
-	struct token* x1 = file1.token;
-	struct token* x2 = file2.token;
+	struct token* token1 = file1.token;
+	struct token* token2 = file2.token;
 	
 	double file1kld = 0.0;
 	double file2kld = 0.0;
+	double constructedMean = 0.0;
 
-	while(x1 != NULL) {
-		char* val = x1->value;
-		char* val2 = NULL;
-		double val2Mean = 0.0;
-		while(x2 != NULL) {
-			char* temp = x2->value;
-			if(strcmp(val, temp) == 0) {
-				val2Mean = x2->prob;
-				val2 = temp;
+	while(token1 != NULL) {
+		char* currToken = token1->value;
+		char* tok2 = NULL;
+		double token2Prob = 0.0;
+		while(token2 != NULL) {
+			char* temp = token2->value;
+			if(strcmp(currToken, temp) == 0) {
+				token2Prob = token2->prob;
+				tok2 = temp;
 				break;
 			}
-			x2 = x2->next;
+			token2 = token2->next;
 		}
 
-		if(val2 == NULL) {
-			double meanX = (x1->prob + val2Mean) / 2;
-			file1kld += x1->prob * log10(x1->prob / meanX);
+		if(tok2 == NULL) {
+			constructedMean = (token1->prob + token2Prob) / 2;
+			file1kld += token1->prob * log10(token1->prob / constructedMean);
 		} else {
-			double meanX = (x1->prob + val2Mean) / 2;
-			file1kld += x1->prob * log10(x1->prob / meanX);
+			constructedMean = (token1->prob + token2Prob) / 2;
+			file1kld += token1->prob * log10(token1->prob / constructedMean);
 		}
-		x2 = file2.token;
-		x1 = x1->next;
+		token2 = file2.token;
+		token1 = token1->next;
 	}
 
-	x1 = file1.token;
-	x2 = file2.token;
+	token1 = file1.token;
+	token2 = file2.token;
 
-	while(x2 != NULL) {
-		char* val = x2->value;
-		char* val2 = NULL;
-		double val2Mean = 0.0;
-		while(x1 != NULL) {
-			char* temp = x1->value;
-			if(strcmp(val, temp) == 0) {
-				val2Mean = x1->prob;
-				val2 = temp;
+	while(token2 != NULL) {
+		char* currToken = token2->value;
+		char* tok1 = NULL;
+		double token1Prob = 0.0;
+		while(token1 != NULL) {
+			char* temp = token1->value;
+			if(strcmp(currToken, temp) == 0) {
+				token1Prob = token1->prob;
+				tok1 = temp;
 				break;
 			}
-			x1 = x1->next;
+			token1 = token1->next;
 		}
 
-		if(val2 == NULL) {
-			double meanX = (x2->prob + val2Mean) / 2;
-			file2kld += x2->prob * log10(x2->prob / meanX);
+		if(tok1 == NULL) {
+			constructedMean = (token2->prob + token1Prob) / 2;
+			file2kld += token2->prob * log10(token2->prob / constructedMean);
 		} else {
-			double meanX = (x2->prob + val2Mean) / 2;
-			file2kld += x2->prob * log10(x2->prob / meanX);
+			constructedMean = (token2->prob + token1Prob) / 2;
+			file2kld += token2->prob * log10(token2->prob / constructedMean);
 		}
-		x1 = file1.token;
-		x2 = x2->next;
+		token1 = file1.token;
+		token2 = token2->next;
 	}
 
 	return (file1kld + file2kld) / 2;
@@ -338,8 +339,8 @@ int main(int argc, char *argv[]) {
 		args->head = args->head->next;
 	}
 	
-	/*
-	struct file file1;
+	
+	/*struct file file1;
 	file1.token = malloc(sizeof(struct token));
 	file1.tokCount = 4;
 	file1.token->value = "hi";
