@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <math.h>
+
 #define RED   "\x1B[31m"
 #define GRN   "\e[1;92m"
 #define BLU   "\x1b[94m"
@@ -35,7 +37,68 @@ struct threadArg{
 	struct file* head;
 };
 
+double calculate(struct file file1, struct file file2) {
+	struct token* x1 = file1.token;
+	struct token* x2 = file2.token;
+	
+	double file1kld = 0.0;
+	double file2kld = 0.0;
 
+	while(x1 != NULL) {
+		char* val = x1->value;
+		char* val2 = NULL;
+		double val2Mean = 0.0;
+		while(x2 != NULL) {
+			char* temp = x2->value;
+			if(strcmp(val, temp) == 0) {
+				val2Mean = x2->prob;
+				val2 = temp;
+				break;
+			}
+			x2 = x2->next;
+		}
+
+		if(val2 == NULL) {
+			double meanX = (x1->prob + val2Mean) / 2;
+			file1kld += x1->prob * log10(x1->prob / meanX);
+		} else {
+			double meanX = (x1->prob + val2Mean) / 2;
+			file1kld += x1->prob * log10(x1->prob / meanX);
+		}
+		x2 = file2.token;
+		x1 = x1->next;
+	}
+
+	x1 = file1.token;
+	x2 = file2.token;
+
+	while(x2 != NULL) {
+		char* val = x2->value;
+		char* val2 = NULL;
+		double val2Mean = 0.0;
+		while(x1 != NULL) {
+			char* temp = x1->value;
+			if(strcmp(val, temp) == 0) {
+				val2Mean = x1->prob;
+				val2 = temp;
+				break;
+			}
+			x1 = x1->next;
+		}
+
+		if(val2 == NULL) {
+			double meanX = (x2->prob + val2Mean) / 2;
+			file2kld += x2->prob * log10(x2->prob / meanX);
+		} else {
+			double meanX = (x2->prob + val2Mean) / 2;
+			file2kld += x2->prob * log10(x2->prob / meanX);
+		}
+		x1 = file1.token;
+		x2 = x2->next;
+	}
+
+	return (file1kld + file2kld) / 2;
+}
 
 
 //inserts token into shared memory structure using insertion sort
@@ -275,7 +338,32 @@ int main(int argc, char *argv[]) {
 		args->head = args->head->next;
 	}
 	
-	
+	/*
+	struct file file1;
+	file1.token = malloc(sizeof(struct token));
+	file1.tokCount = 4;
+	file1.token->value = "hi";
+	file1.token->prob = 0.5;
+	file1.token->next = malloc(sizeof(struct token));
+	file1.token->next->value = "there";
+	file1.token->next->prob = 0.5;
+	file1.token->next->next = NULL;
+
+	//c.txt, hi = prob 0.5, out = prob 0.25, there = prob 0.25
+	struct file file2;
+	file2.token = malloc(sizeof(struct token));
+	file2.tokCount = 4;
+	file2.token->value = "hi";
+	file2.token->prob = 0.5;
+	file2.token->next = malloc(sizeof(struct token));
+	file2.token->next->value = "out";
+	file2.token->next->prob = 0.25;
+	file2.token->next->next = malloc(sizeof(struct token));
+	file2.token->next->next->value = "there";
+	file2.token->next->next->prob = 0.25;
+	file2.token->next->next->next = NULL;
+	double result = calculate(file1, file2);
+	printf("Result for file1 and file2 is: %f\n", result);*/
 
     printf(RESET);
     return EXIT_SUCCESS;
