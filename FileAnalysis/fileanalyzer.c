@@ -159,39 +159,9 @@ void* fileHandle(void* directory){
 	printf("FILE HANDLE: %s\n",args->dir);
 	//attempt to open file
 	int fd;
-
 	if((fd = open(args->dir,O_RDONLY)) == -1){
 		printf("ERR: cannot open file %s\n",args->dir);
 	}else{
-		//start reading data into buffer of size 256, then copy to larger array.
-		int bufIncr = 256;
-		int rs = 0;
-		char* buf = (char*) malloc(bufIncr);
-		int bfsz = 0;
-		char* file = NULL;
-		//while file has more bytes, copy n bytes from from 256byte buffer into dynamically resizable array
-		while((rs = read(fd,buf,bufIncr)) > 0){
-			bfsz+=rs;
-			file = (char*) realloc(file,bfsz);
-			memcpy(file+bfsz-rs,buf,rs);
-		}
-		//if file is empty, return
-		if(file==NULL){
-			free(buf);
-			return 0;
-		}
-
-		//convert to lower case
-		int len = strlen(file)+1;
-		for(int i =0;i<len;i++){
-			file[i] = tolower(file[i]);
-			if(isalpha(file[i])==0 && isspace(file[i])==0){//if char is not alphabetic or a whitespace
-			
-				memcpy(&file[i],&file[i+1],len-i);//memmove for overlapping vs memcpy
-				
-			}
-		}
-
 		//set shared data structure head to end of LL
 		pthread_mutex_lock(args->lock);
 		struct file* tmp = args->head;
@@ -208,12 +178,40 @@ void* fileHandle(void* directory){
 		tmp->next->path = (char*) malloc(strlen(args->dir)+1);
 		strcpy(tmp->next->path, args->dir);
 
-		//strtok will allocate memory for each token it returns
-		char* token = strtok(file," \t\n");
-		while(token!=NULL){
-			insertToken(tmp->next,token);
-			token = strtok(NULL," \t\n");
+
+
+		//start reading data into buffer of size 256, then copy to larger array.
+		int rs = 0;
+		char buf;
+		int tokbuf = 256;//initial maximum token size
+		char* token = (char*) malloc(tokbuf);
+		int ind = 0;//index of current token
+
+		//this loop will read characters 1 by 1 from file and when reaches a whitespace, send token to be inserted. then repeat until EOF
+		while((rs = read(fd,&buf,1)) > 0){
+			if(isalpha(buf)==0 && isspace(buf)==0 && (buf!= '-')){//if char is not alphabetic or a whitespace and not a hyphen then skip it
+				continue;	
+			}
+			//when we encounter a whitespace,add terminator and send token to insertToken()
+			if(isspace(buf)){
+				token[ind] = '\0';
+				ind = 0;
+				insertToken(tmp->next,token);
+				continue;
+			}
+			buf = tolower(buf);
+			token[ind] = buf;
+			ind++;
+
+			//if we reach end of token buffer, realloc with double the size.
+			if(ind>tokbuf-1){
+				tokbuf = tokbuf*2;
+				token = (char*) realloc(token, tokbuf);
+			}
 		}
+
+		
+
 		//after done inserting, compute discrete probabilities
 		struct token* curtok = tmp->next->token;
 		while(curtok!=NULL){
@@ -221,9 +219,7 @@ void* fileHandle(void* directory){
 			curtok = curtok->next;
 		}
 
-		//remove file and buffer from memory
-		free(file);
-		free(buf);
+
 
 	}
 
