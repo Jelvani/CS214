@@ -218,7 +218,7 @@ void* fileHandle(void* directory){
 		int tokbuf = 256;//initial maximum token size
 		char* token = (char*) malloc(tokbuf);
 		int ind = 0;//index of current token
-
+		char flag = 0;
 		//this loop will read characters 1 by 1 from file and when reaches a whitespace, send token to be inserted. then repeat until EOF
 		while((rs = read(fd,&buf,1)) > 0){
 			if(isalpha(buf)==0 && isspace(buf)==0 && (buf!= '-')){//if char is not alphabetic or a whitespace and not a hyphen then skip it
@@ -226,11 +226,16 @@ void* fileHandle(void* directory){
 			}
 			//when we encounter a whitespace,add terminator and send token to insertToken()
 			if(isspace(buf)){
+				if(flag){
+					continue;
+				}
+				flag = 1;
 				token[ind] = '\0';
 				ind = 0;
 				insertToken(tmp->next,token);
 				continue;
 			}
+			flag = 0;
 			buf = tolower(buf);
 			token[ind] = buf;
 			ind++;
