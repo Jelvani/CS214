@@ -13,9 +13,10 @@
 #define RED   "\x1B[31m"
 #define GRN   "\e[1;92m"
 #define BLU   "\x1b[94m"
+#define YEL  "\x1B[33m"
+#define CYN  "\x1B[36m"
+#define WHT  "\x1B[37m"
 #define RESET "\x1B[0m"
-
-
 
 struct file{
 	char* path;
@@ -175,7 +176,7 @@ void insertToken(struct file* file, char* token){
 
 void* fileHandle(void* directory){
 	struct threadArg* args = (struct threadArg*) directory;
-	printf("FILE HANDLE: %s\n",args->dir);
+	//printf("FILE HANDLE: %s\n",args->dir);
 	//attempt to open file
 	int fd;
 	if((fd = open(args->dir,O_RDONLY)) == -1){
@@ -236,18 +237,12 @@ void* fileHandle(void* directory){
 			insertToken(tmp->next,token);
 		}
 
-
-		
-
 		//after done inserting, compute discrete probabilities
 		struct token* curtok = tmp->next->token;
 		while(curtok!=NULL){
 			curtok->prob = (curtok->prob) / tmp->next->tokCount;
 			curtok = curtok->next;
 		}
-
-
-
 	}
 
 	close(fd);
@@ -285,7 +280,7 @@ void* findDir(void* directory) {
             strcat(new_args->dir, dp->d_name);
 			new_args->lock = args->lock;
 			new_args->head = args->head;
-			printf(BLU "Found dir: %s\n", new_args->dir);
+			//printf(BLU "Found dir: %s\n", new_args->dir);
 			pthread_create(thread_list+trdCnt-1,NULL,findDir,(void*) new_args);
 			trdCnt++;
 			//dynamicly resize array
@@ -300,7 +295,7 @@ void* findDir(void* directory) {
             strcat(new_args->dir, dp->d_name);
 			new_args->lock = args->lock;
 			new_args->head = args->head;
-			printf(GRN "Found file: %s\n", dp->d_name);
+			//printf(GRN "Found file: %s\n", dp->d_name);
 			pthread_create(thread_list+trdCnt-1,NULL,fileHandle,(void*) new_args);
 			trdCnt++;
 			//dynamicly resize array
@@ -350,33 +345,38 @@ int main(int argc, char *argv[]) {
 		//does not need to be thread as per instruction (1.c)
 	
     findDir((void*) args);
-	
 
-//sample loop going through all files and tokens in our shared data structure
-
-	while(args->head!=NULL){
-		printf("FILE: %s\n", args->head->path);
-		while(args->head->token!=NULL){
-			printf("TOKEN: %s WITH PROB: %f\n",args->head->token->value,args->head->token->prob);
-			args->head->token = args->head->token->next;
-		}
-		args->head = args->head->next;
-	}
-
-/*
 	struct file* file1 = (struct file*) args->head->next;
 	struct file* file2 = (struct file*) args->head->next->next;
 
 	while(file1 != NULL) {
 		while(file2 != NULL) {
+			printf(RESET);
 			double result = calculate(file1, file2);
-			printf("distance %f for %s and %s\n", result, file1->path, file2->path);
+			if(result >= 0 && result < 0.1) {
+				printf(RED "%f ", result);
+			} else if(result > 0.1 && result <= 0.15) {
+				printf(YEL "%f ", result);
+			} else if(result > 0.15 && result <= 0.2) {
+				printf(GRN "%f ", result);
+			} else if(result > 0.2 && result <= 0.25) {
+				printf(CYN "%f ", result);
+			} else if(result > 0.25 && result <= 0.3) {
+				printf(BLU "%f ", result);
+			} else {
+				printf(WHT "%f ", result);
+			}
+			printf(RESET "for \"%s\" and \"%s\"\n", file1->path, file2->path);
 			file2 = file2->next;
 		}
 		file1 = file1->next;
-		file2 = file1->next;
+
+		if(file1->next != NULL)
+			file2 = file1->next;
+		else
+			break;
 	}
-*/
+
     printf(RESET);
     return EXIT_SUCCESS;
 }
