@@ -139,8 +139,9 @@ void insertToken(struct file* file, char* token){
 
 	ptr->next = (struct token*) malloc(sizeof(struct token));
 	ptr->next->value = (char*) malloc(strlen(token) + 1);
+	ptr->next->next = NULL;
 	strcpy(ptr->next->value,token);
-	ptr->next->prob++;
+	ptr->next->prob = 1;
 
 	/*
 	//if token is less than first value in list
@@ -356,16 +357,18 @@ int main(int argc, char *argv[]) {
     findDir((void*) args);
 	
 
-//sample loop going through all files and tokens in our shared data structure	
-	/*while(args->head!=NULL){
+//sample loop going through all files and tokens in our shared data structure
+
+	while(args->head!=NULL){
 		printf("FILE: %s\n", args->head->path);
 		while(args->head->token!=NULL){
 			printf("TOKEN: %s WITH PROB: %f\n",args->head->token->value,args->head->token->prob);
 			args->head->token = args->head->token->next;
 		}
 		args->head = args->head->next;
-	}*/
-	
+	}
+
+/*
 	struct file* file1 = (struct file*) args->head->next;
 	struct file* file2 = (struct file*) args->head->next->next;
 
@@ -378,7 +381,7 @@ int main(int argc, char *argv[]) {
 		file1 = file1->next;
 		file2 = file1->next;
 	}
-
+*/
     printf(RESET);
     return EXIT_SUCCESS;
 }
