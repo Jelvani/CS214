@@ -105,8 +105,12 @@ double calculate(struct file file1, struct file file2) {
 //inserts token into shared memory structure using insertion sort
 void insertToken(struct file* file, char* token){
 	file->tokCount++;
+
+
 	//if first token, insert and return
+
 	if(file->token == NULL){
+		//printf("FIRST: %s\n",token);
 		char* tok = (char*) malloc(strlen(token) + 1);
 		strcpy(tok,token);
 		file->token = (struct token*) malloc(sizeof(struct token));
@@ -115,8 +119,33 @@ void insertToken(struct file* file, char* token){
 		file->token->prob = 1;
 		return;
 	}
+	struct token* ptr = (struct token*) malloc(sizeof(struct token));
+	ptr = file->token;
+	if(strcmp(ptr->value,token)==0){
+		ptr->prob++;
+		return;
+	}
+	while(ptr->next!=NULL){
+		if(strcmp(ptr->value,token)==0){
+			ptr->prob++;
+			return;
+		}
+		ptr = ptr->next;
+	}
+	if(strcmp(ptr->value,token)==0){
+		ptr->prob++;
+		return;
+	}
+
+	ptr->next = (struct token*) malloc(sizeof(struct token));
+	ptr->next->value = (char*) malloc(strlen(token) + 1);
+	strcpy(ptr->next->value,token);
+	ptr->next->prob++;
+
+	/*
 	//if token is less than first value in list
 	if(strcmp(token,file->token->value) < 0){
+		//printf("LESS: %s\n",token);
 		char* tok = (char*) malloc(strlen(token) + 1);
 		strcpy(tok,token);
 		struct token* tmp = file->token;
@@ -130,8 +159,10 @@ void insertToken(struct file* file, char* token){
 	// all other cases, insertion sort
 	struct token* tmp = file->token;
 	struct token* prev = tmp;
+	
 	while(tmp->next!=NULL){
 		if(strcmp(token,tmp->value) < 0){
+			//printf("NEW: %s\n",token);
 			char* tok = (char*) malloc(strlen(token) + 1);
 			strcpy(tok,token);
 			prev->next  = (struct token*) malloc(sizeof(struct token));
@@ -140,6 +171,7 @@ void insertToken(struct file* file, char* token){
 			prev->next->prob = 1;
 			return;
 		}else if(strcmp(token,tmp->value) == 0){
+			//printf("EXISTS: %s\n",token);
 			tmp->prob++;
 			return;
 		}
@@ -151,6 +183,7 @@ void insertToken(struct file* file, char* token){
 	tmp->next->value = (char*) malloc(strlen(token) + 1);
 	strcpy(tmp->next->value,token);
 	tmp->next->prob = 1;
+	*/
 
 }
 
@@ -177,9 +210,7 @@ void* fileHandle(void* directory){
 		//copy file path/name to file node
 		tmp->next->path = (char*) malloc(strlen(args->dir)+1);
 		strcpy(tmp->next->path, args->dir);
-
-
-
+		
 		//start reading data into buffer of size 256, then copy to larger array.
 		int rs = 0;
 		char buf;
