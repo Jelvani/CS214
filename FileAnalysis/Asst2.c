@@ -312,11 +312,55 @@ void* findDir(void* directory) {
 }
 
 
+struct file* mergeLists(struct file* first, struct file* second){
+	struct file* headFirst = first;
+	struct file* headSecond = second;
+	if(first==NULL){
+		return second;
+	}
+	if(second==NULL){
+		return first;
+	}
+	if(first->tokCount >=  second->tokCount){
+		while(first->next!=NULL){
+			first = first->next;
+		}
+		first->next = second;
+		return headFirst;
+	}else{
+		while(second->next!=NULL){
+			second = second->next;
+		}
+		second->next = first;
+		return headSecond;
+	}
+	return NULL;
+}
 
-void sortFiles(struct file* head){
-	//head is always an emtpy struct
-	struct file* file = head->next;
+struct file* sortFiles(struct file* head){
 
+
+	if(head == NULL || head->next == NULL){
+		return head;
+	}
+	struct file* first = head;
+	struct file* second = head;
+	struct file* tail = head;
+	//get middle of LL
+	while(tail->next!=NULL && tail->next->next!=NULL){
+		tail = tail->next->next;
+		first = first->next;
+	}
+	//second is head of second list, first is head of curst list
+	second = first->next;
+	first->next = NULL;
+
+	//call the this function again until all nodes are split
+	second = sortFiles(second);
+	first = sortFiles(head);
+	//return sorted list that compares only first values
+	return mergeLists(first,second);
+	
 }
 int main(int argc, char *argv[]) {
     //Checks for args count
@@ -357,11 +401,17 @@ int main(int argc, char *argv[]) {
 		return EXIT_SUCCESS;
 	}
 	//after return, sort data structure file in order of token count
-	//sortFiles(args->head);
+	
+	args->head->next = sortFiles(args->head->next);
 
 	struct file* file1 = (struct file*) args->head->next;
 	struct file* file2 = (struct file*) args->head->next->next;
+	while(file1->next!=NULL){
+		printf("tokCount: %d\n",file1->tokCount);
+		file1=file1->next;
+	}
 
+/*
 	while(file1 != NULL) {
 		while(file2 != NULL) {
 			printf(RESET);
@@ -389,7 +439,7 @@ int main(int argc, char *argv[]) {
 		else
 			break;
 	}
-
+*/
     printf(RESET);
     return EXIT_SUCCESS;
 }
