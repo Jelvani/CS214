@@ -311,30 +311,23 @@ void* findDir(void* directory) {
 	return 0;
 }
 
-
+//recursvie method, returns a sorted LL when given 2
 struct file* mergeLists(struct file* first, struct file* second){
-	struct file* headFirst = first;
-	struct file* headSecond = second;
+	struct file* res = NULL;
 	if(first==NULL){
 		return second;
 	}
 	if(second==NULL){
 		return first;
 	}
-	if(first->tokCount >=  second->tokCount){
-		while(first->next!=NULL){
-			first = first->next;
-		}
-		first->next = second;
-		return headFirst;
+	if(first->tokCount <=  second->tokCount){
+		res = first;
+		res->next = mergeLists(first->next,second);
 	}else{
-		while(second->next!=NULL){
-			second = second->next;
-		}
-		second->next = first;
-		return headSecond;
+		res = second;
+		res->next = mergeLists(first,second->next);
 	}
-	return NULL;
+	return res;
 }
 
 struct file* sortFiles(struct file* head){
@@ -406,12 +399,8 @@ int main(int argc, char *argv[]) {
 
 	struct file* file1 = (struct file*) args->head->next;
 	struct file* file2 = (struct file*) args->head->next->next;
-	while(file1->next!=NULL){
-		printf("tokCount: %d\n",file1->tokCount);
-		file1=file1->next;
-	}
 
-/*
+
 	while(file1 != NULL) {
 		while(file2 != NULL) {
 			printf(RESET);
@@ -439,7 +428,7 @@ int main(int argc, char *argv[]) {
 		else
 			break;
 	}
-*/
+
     printf(RESET);
     return EXIT_SUCCESS;
 }
