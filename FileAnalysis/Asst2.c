@@ -18,12 +18,13 @@
 #define WHT  "\x1B[37m"
 #define RESET "\x1B[0m"
 
+
 struct file{//node for each file
 	char* path;
 	int tokCount;
 	struct file* next;
 	struct token* token;
-	};
+};
 
 struct token{//node for each token
 	char* value;
@@ -37,6 +38,13 @@ struct threadArg{//struct for single thread argument
 	struct file* head;
 };
 
+/**
+ * calculate(file1, file2):
+ * 		file1: first file to compare
+ * 		file2: second file to compare
+ * 
+ * This method grabs both token lists, and solves for the KLD/JSD for the pair. 
+ */
 double calculate(struct file* file1, struct file* file2) {
 	struct token* token1 = file1->token;
 	struct token* token2 = file2->token;
@@ -45,6 +53,20 @@ double calculate(struct file* file1, struct file* file2) {
 	double file2kld = 0.0;
 	double constructedMean = 0.0;
 
+	/**
+	 * If tokenList for file1 is not null
+	 * 		Grab currentToken (file1 token)
+	 * 		
+	 * 		If tokenList for file2 is not null
+	 * 			Grab currentToken (file2Token)
+	 * 			strcmp() to see if token1 value and token2 value are the same
+	 * 				if true:
+	 * 					grab probability, and set tok2 to currentToken from file2
+	 * 		Proceed to next token
+	 * 
+	 * Calculate mean based on value of tok2
+	 * Grab file1KLD
+	 */ 
 	while(token1 != NULL) {
 		char* currToken = token1->value;
 		char* tok2 = NULL;
@@ -61,18 +83,32 @@ double calculate(struct file* file1, struct file* file2) {
 
 		if(tok2 == NULL) {
 			constructedMean = (token1->prob + token2Prob) / 2;
-			file1kld += token1->prob * log10(token1->prob / constructedMean);
 		} else {
 			constructedMean = (token1->prob + token2Prob) / 2;
-			file1kld += token1->prob * log10(token1->prob / constructedMean);
 		}
+		file1kld += token1->prob * log10(token1->prob / constructedMean);
 		token2 = file2->token;
 		token1 = token1->next;
 	}
 
+	//reset tokenList to beginning
 	token1 = file1->token;
 	token2 = file2->token;
 
+	/**
+	 * If tokenList for file2 is not null
+	 * 		Grab currentToken (file2 token)
+	 * 		
+	 * 		If tokenList for file1 is not null
+	 * 			Grab currentToken (file1Token)
+	 * 			strcmp() to see if token2 value and token1 value are the same
+	 * 				if true:
+	 * 					grab probability, and set tok2 to currentToken from file1
+	 * 		Proceed to next token
+	 * 
+	 * Calculate mean based on value of tok1
+	 * Grab file2KLD
+	 */ 
 	while(token2 != NULL) {
 		char* currToken = token2->value;
 		char* tok1 = NULL;
@@ -89,18 +125,15 @@ double calculate(struct file* file1, struct file* file2) {
 
 		if(tok1 == NULL) {
 			constructedMean = (token2->prob + token1Prob) / 2;
-			file2kld += token2->prob * log10(token2->prob / constructedMean);
 		} else {
 			constructedMean = (token2->prob + token1Prob) / 2;
-			file2kld += token2->prob * log10(token2->prob / constructedMean);
 		}
+		file2kld += token2->prob * log10(token2->prob / constructedMean);
 		token1 = file1->token;
 		token2 = token2->next;
 	}
-
 	return (file1kld + file2kld) / 2;
 }
-
 
 //inserts token into shared memory structure using insertion sort
 void insertToken(struct file* file, char* token){//takes in a file struct pointer and given token to insert
@@ -108,7 +141,6 @@ void insertToken(struct file* file, char* token){//takes in a file struct pointe
 	file->tokCount++;
 		
 	//if first token, insert and return
-
 	if(file->token == NULL){
 		char* tok = (char*) malloc(strlen(token) + 1);
 		strcpy(tok,token);
@@ -119,7 +151,6 @@ void insertToken(struct file* file, char* token){//takes in a file struct pointe
 		return;
 	}
 	
-
 	//if token is less than first value in list
 	if(strcmp(token,file->token->value) < 0){
 		struct token* prev = file->token;
@@ -167,7 +198,6 @@ void insertToken(struct file* file, char* token){//takes in a file struct pointe
 	strcpy(ptr->next->value,token);
 	ptr->next->prob = 1;
 	return;
-
 }
 
 void* fileHandle(void* directory){//run on each thread for file handling, takes in threadArg struct pointer. Will populate shared datastructure with tokens
@@ -204,10 +234,9 @@ void* fileHandle(void* directory){//run on each thread for file handling, takes 
 		int ind = 0;//index of current token
 		//this loop will read characters 1 by 1 from file and when reaches a whitespace, send token to be inserted. then repeat until EOF
 		while((rs = read(fd,&buf,1)) > 0){
-
-			if(isalpha(buf)==0 && isspace(buf)==0 && (buf!= '-')){//if char is not alphabetic or a whitespace and not a hyphen then skip it
-				continue;	
-				
+			//if char is not alphabetic or a whitespace and not a hyphen then skip it
+			if(isalpha(buf)==0 && isspace(buf)==0 && (buf!= '-')){
+				continue;		
 			}
 			
 			//when we encounter a whitespace,add terminator and send token to insertToken()
@@ -255,8 +284,8 @@ void* findDir(void* directory) {//give threadArg struct with root directory, and
     struct dirent *dp;
 	pthread_t* thread_list = (pthread_t*) malloc(sizeof(pthread_t));//array of thread id's
 	int trdCnt = 1;
+
     //checks to see if can open directory, if not fail it.
-	
     if((dir = opendir(args->dir)) == NULL) {
 		printf("ERR: cannot open directory: %s \n",args->dir);
 		printf(RESET);
@@ -265,7 +294,6 @@ void* findDir(void* directory) {//give threadArg struct with root directory, and
 
 	printf(RESET);
     while((dp = readdir(dir)) != NULL) { 
-
         if(dp->d_type == DT_DIR) {
 			//check for previous and current dir links
             if(strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) {
@@ -342,8 +370,6 @@ struct file* mergeLists(struct file* first, struct file* second){
 }
 
 struct file* sortFiles(struct file* head){
-
-
 	if(head == NULL || head->next == NULL){
 		return head;
 	}
@@ -364,8 +390,8 @@ struct file* sortFiles(struct file* head){
 	first = sortFiles(head);
 	//return sorted list that compares only first values
 	return mergeLists(first,second);
-	
 }
+
 int main(int argc, char *argv[]) {
     //Checks for args count
     if(argc != 2){
@@ -378,11 +404,12 @@ int main(int argc, char *argv[]) {
 	
 	struct threadArg* args = (struct threadArg*) malloc(sizeof(struct threadArg));
 	args->lock = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
-        //initializes mutex lock for synch
-        if(pthread_mutex_init(args->lock, NULL) != 0) { 
-            printf("mutex init has failed\n"); 
-            return 1; 
-        } 
+   
+    //initializes mutex lock for synch
+    if(pthread_mutex_init(args->lock, NULL) != 0) { 
+        printf("mutex init has failed\n"); 
+        return 1; 
+    } 
 
     char* fullpath;
 	//get full path of given relative path
@@ -394,7 +421,7 @@ int main(int argc, char *argv[]) {
 	
 	args->dir = fullpath;
 	args->head = (struct file*) malloc(sizeof(struct file));
-		//does not need to be thread as per instruction (1.c)
+	//does not need to be thread as per instruction (1.c)
 	
 
 	//begin populaitng datastructure
@@ -413,7 +440,6 @@ int main(int argc, char *argv[]) {
 
 	struct file* file1 = (struct file*) args->head->next;
 	struct file* file2 = (struct file*) args->head->next->next;
-
 
 	while(file1 != NULL) {
 		while(file2 != NULL) {
