@@ -105,9 +105,6 @@ double calculate(struct file* file1, struct file* file2) {
 
 //inserts token into shared memory structure using insertion sort
 void insertToken(struct file* file, char* token){
-	if(strcmp(token,"nss")==0){
-		printf("found!\n");
-	}
 	file->tokCount++;
 		
 	//if first token, insert and return
@@ -314,6 +311,13 @@ void* findDir(void* directory) {
 	return 0;
 }
 
+
+
+void sortFiles(struct file* head){
+	//head is always an emtpy struct
+	struct file* file = head->next;
+
+}
 int main(int argc, char *argv[]) {
     //Checks for args count
     if(argc != 2){
@@ -344,7 +348,16 @@ int main(int argc, char *argv[]) {
 	args->head = (struct file*) malloc(sizeof(struct file));
 		//does not need to be thread as per instruction (1.c)
 	
+
+	//begin populaitng datastructure
     findDir((void*) args);
+	//check if any files were found
+	if(args->head->next == NULL){
+		printf("No Files Found!\n");
+		return EXIT_SUCCESS;
+	}
+	//after return, sort data structure file in order of token count
+	//sortFiles(args->head);
 
 	struct file* file1 = (struct file*) args->head->next;
 	struct file* file2 = (struct file*) args->head->next->next;
