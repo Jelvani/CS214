@@ -53,3 +53,14 @@ This was a test case consisting of two files that were exactly similar; however,
 	JSD for TestA, TestB: 0.0 + 0.0 / 2 = 0.0
 
 Test Case 5.
+This was a test case to see if the file would be able to handle two files that are empty.
+
+	TestA.txt
+		Content:
+	TestB.txt
+		Content:
+	
+	KLD for TestA.txt: 0.0
+	KLD for TestB.txt: 0.0
+
+	JSD for TestA, TestB: 0.0 + 0.0 / 2 = 0.0
