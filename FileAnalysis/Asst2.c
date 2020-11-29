@@ -18,21 +18,20 @@
 #define WHT  "\x1B[37m"
 #define RESET "\x1B[0m"
 
-struct file{
+struct file{//node for each file
 	char* path;
 	int tokCount;
 	struct file* next;
 	struct token* token;
 	};
 
-struct token{
+struct token{//node for each token
 	char* value;
 	double prob;
 	struct token* next;
 };
 
-//according to menny, we cannot have our mutex as a global, so we pass this struct to each thread argument
-struct threadArg{
+struct threadArg{//struct for single thread argument
 	char* dir;
 	pthread_mutex_t* lock;
 	struct file* head;
@@ -104,13 +103,13 @@ double calculate(struct file* file1, struct file* file2) {
 
 
 //inserts token into shared memory structure using insertion sort
-void insertToken(struct file* file, char* token){
+void insertToken(struct file* file, char* token){//takes in a file struct pointer and given token to insert
+	
 	file->tokCount++;
 		
 	//if first token, insert and return
 
 	if(file->token == NULL){
-		//printf("FIRST: %s\n",token);
 		char* tok = (char*) malloc(strlen(token) + 1);
 		strcpy(tok,token);
 		file->token = (struct token*) malloc(sizeof(struct token));
@@ -147,7 +146,7 @@ void insertToken(struct file* file, char* token){
 			prev->next->next = ptr;
 			prev->next->prob = 1;
 			return;
-		}else if(strcmp(token,ptr->value) == 0){
+		}else if(strcmp(token,ptr->value) == 0){//if token exists, increment count and return
 			ptr->prob++;
 			return;
 		}
@@ -171,13 +170,15 @@ void insertToken(struct file* file, char* token){
 
 }
 
-void* fileHandle(void* directory){
+void* fileHandle(void* directory){//run on each thread for file handling, takes in threadArg struct pointer. Will populate shared datastructure with tokens
 	struct threadArg* args = (struct threadArg*) directory;
-	//printf("FILE HANDLE: %s\n",args->dir);
 	//attempt to open file
 	int fd;
 	if((fd = open(args->dir,O_RDONLY)) == -1){
-		printf("ERR: cannot open file %s\n",args->dir);
+		printf("ERR: cannot open file: %s\n",args->dir);
+		free(args->dir);
+		free(args);
+		return 0;
 	}else{
 		//set shared data structure head to end of LL
 		pthread_mutex_lock(args->lock);
@@ -210,7 +211,7 @@ void* fileHandle(void* directory){
 			}
 			
 			//when we encounter a whitespace,add terminator and send token to insertToken()
-			if(isalpha(buf)==0){
+			if(isalpha(buf)==0 && buf != '-'){
 				if(ind==0){
 					continue;
 				}
@@ -233,7 +234,7 @@ void* fileHandle(void* directory){
 		if(isspace(buf)==0){
 			insertToken(tmp->next,token);
 		}
-
+		free(token);
 		//after done inserting, compute discrete probabilities
 		struct token* curtok = tmp->next->token;
 		while(curtok!=NULL){
@@ -241,13 +242,14 @@ void* fileHandle(void* directory){
 			curtok = curtok->next;
 		}
 	}
+	//close file and free argument structs
 
 	close(fd);
 	free(args->dir);
 	free(args);
 	return 0;
 }
-void* findDir(void* directory) {
+void* findDir(void* directory) {//give threadArg struct with root directory, and this method will launch and join  threads of its own function or the fileHandle function accordingly
 	struct threadArg* args = (struct threadArg*) directory;
     DIR *dir;
     struct dirent *dp;
@@ -256,9 +258,9 @@ void* findDir(void* directory) {
     //checks to see if can open directory, if not fail it.
 	
     if((dir = opendir(args->dir)) == NULL) {
-		printf("ERR: cannot open %s\n",args->dir);
+		printf("ERR: cannot open directory: %s \n",args->dir);
 		printf(RESET);
-		exit(1);
+		return 0;
 	}
 
 	printf(RESET);
@@ -300,17 +302,26 @@ void* findDir(void* directory) {
         }
         printf(RESET);
     }
+	//close our open directory
     closedir(dir);
+
+	//join all pthreads
 	for(int i=0; i<trdCnt-1; i++){
 		pthread_join(thread_list[i],NULL);
 	}
     
+
+	//free our argument struct, and our thread list array
 	free(args->dir);
 	free(thread_list);
 	free(args);
 	return 0;
 }
 
+
+/*
+FOLLOWING 2 FUNCTIONS ARE FOR MERGE SORT OF OUR FILE LINKED LIST, SORTED BY SMALLEST TOKEN COUNT FIRST
+*/
 //recursvie method, returns a sorted LL when given 2
 struct file* mergeLists(struct file* first, struct file* second){
 	struct file* res = NULL;
@@ -374,7 +385,7 @@ int main(int argc, char *argv[]) {
         } 
 
     char* fullpath;
-	
+	//get full path of given relative path
 	if((fullpath=realpath(argv[1], NULL))==NULL){
 		printf(RED "The path: '%s' is invalid!\n",argv[1]);
 		printf(RESET);
@@ -391,6 +402,9 @@ int main(int argc, char *argv[]) {
 	//check if any files were found
 	if(args->head->next == NULL){
 		printf("No Files Found!\n");
+		return EXIT_SUCCESS;
+	}else if(args->head->next->next == NULL){
+		printf("Only 1 file found!\n");
 		return EXIT_SUCCESS;
 	}
 	//after return, sort data structure file in order of token count
