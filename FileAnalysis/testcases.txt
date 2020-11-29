@@ -1,6 +1,19 @@
-Alborz Jelvani, Patrick Nogaj
+Submitted by Alborz Jelvani, Patrick Nogaj
 
 Test Case 1.
+This test case was taken from the Asst2.pdf to gauge if our KLD/JSD were calculating properly as it is important to get a baseline that is appropriate.
+
+	B.txt:
+		Content: hi hi there there
+	C.txt
+		Content: hi hi out there
+
+	KLD for B.txt: 0.06247
+	KLD for C.txt: 0.0313
+
+	JSD for B, C: 0.6247 + 0.0313 / 2 = ~0.469 (rounded)
+
+Test Case 2.
 This was a generic test case where we tested to see the KLD and JSD values of two files that were perfectly matching (aka plagiarized). 
 
 	A.txt
@@ -13,7 +26,7 @@ This was a generic test case where we tested to see the KLD and JSD values of tw
 
 	JSD for A, A-copy: 0 + 0 / 2 = 0
 
-Test Case 2.
+Test Case 3.
 This was another generic test case where we tested to see the KLD and JSD values of two files that had no similarities at all (no token matching).
 
 	A.txt
@@ -25,3 +38,29 @@ This was another generic test case where we tested to see the KLD and JSD values
 	KLD for B.txt: 0.301
 
 	JSD for A, B: 0.301 + 0.301 / 2 = 0.301
+
+Test Case 4.
+This was a test case consisting of two files that were exactly similar; however, we added characters that would not be tokenized to ensure that our token handling was correct, thus producing the correct result of a JSD of 0.0
+
+	TestA.txt
+		Content: hi 1 2 3 how are you doing 5 4 3 2 x x x d d d e 2 e e 2 e e ! ! ! ! e e e
+	TestB.txt
+		Content:1 2 3 hi 5 how 4 are 3 you  2 doing 5 4 3 2 x 1  x  1 x  2 d  3 d 4  d e 6 2 e e 2 e e ! ! ! ! e e e
+
+	KLD for TestA.txt: 0.0
+	KLD for TestB.txt: 0.0
+
+	JSD for TestA, TestB: 0.0 + 0.0 / 2 = 0.0
+
+Test Case 5.
+This was a test case to see if the file would be able to handle two files that are empty.
+
+	TestA.txt
+		Content:
+	TestB.txt
+		Content:
+	
+	KLD for TestA.txt: 0.0
+	KLD for TestB.txt: 0.0
+
+	JSD for TestA, TestB: 0.0 + 0.0 / 2 = 0.0
