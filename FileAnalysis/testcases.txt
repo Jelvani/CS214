@@ -64,3 +64,16 @@ This was a test case to see if the file would be able to handle two files that a
 	KLD for TestB.txt: 0.0
 
 	JSD for TestA, TestB: 0.0 + 0.0 / 2 = 0.0
+
+Test Case 6.
+This was a test case to see what would happen if we tried opening a directory that had no read permissions. 
+
+	Folder: noperms
+	Command: chmod a-r noperms
+
+	This command removes reading perms from the file.
+
+	Running "./detector noperms"...
+
+	Result: ERR: cannot open directory: /ilab/users/pn220/cs214/projects/Asst2/noperms
+ 		No Files Found!
