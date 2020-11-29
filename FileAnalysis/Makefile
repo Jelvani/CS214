@@ -1,5 +1,5 @@
-fileanalyzer: fileanalyzer.c
-	gcc -pthread -g -o fileanalyzer fileanalyzer.c -lm
+detector: Asst2.c
+	gcc -pthread -g -o detector Asst2.c -lm
 
 clean:
-	rm -f fileanalyzer
+	rm -f detector

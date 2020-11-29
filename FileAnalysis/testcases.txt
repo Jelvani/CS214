@@ -1,0 +1,27 @@
+Alborz Jelvani, Patrick Nogaj
+
+Test Case 1.
+This was a generic test case where we tested to see the KLD and JSD values of two files that were perfectly matching (aka plagiarized). 
+
+	A.txt
+		Content: a a a a
+	A-copy.txt
+		Content: a a a a
+
+	KLD for A.txt: 0.0
+	KLD for A-copy.txt: 0.0
+
+	JSD for A, A-copy: 0 + 0 / 2 = 0
+
+Test Case 2.
+This was another generic test case where we tested to see the KLD and JSD values of two files that had no similarities at all (no token matching).
+
+	A.txt
+		Content: a a a a
+	B.txt
+		Content: b b b b
+
+	KLD for A.txt: 0.301
+	KLD for B.txt: 0.301
+
+	JSD for A, B: 0.301 + 0.301 / 2 = 0.301
