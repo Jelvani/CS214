@@ -38,6 +38,14 @@ struct threadArg{//struct for single thread argument
 	struct file* head;
 };
 
+struct jsd{//struct for storing jsd pairs
+	char* f1;
+	char* f2;
+	int tokCount;
+	double jsd;
+	struct jsd* next;
+};
+
 /**
  * calculate(file1, file2):
  * 		file1: first file to compare
@@ -45,7 +53,7 @@ struct threadArg{//struct for single thread argument
  * 
  * This method grabs both token lists, and solves for the KLD/JSD for the pair. 
  */
-double calculate(struct file* file1, struct file* file2) {
+double calculate(struct file* file1, struct file* file2, int* tokCount) {
 	struct token* token1 = file1->token;
 	struct token* token2 = file2->token;
 	
@@ -74,6 +82,7 @@ double calculate(struct file* file1, struct file* file2) {
 		while(token2 != NULL) {
 			char* temp = token2->value;
 			if(strcmp(currToken, temp) == 0) {
+				(*tokCount)++;
 				token2Prob = token2->prob;
 				tok2 = temp;
 				break;
@@ -116,6 +125,7 @@ double calculate(struct file* file1, struct file* file2) {
 		while(token1 != NULL) {
 			char* temp = token1->value;
 			if(strcmp(currToken, temp) == 0) {
+				
 				token1Prob = token1->prob;
 				tok1 = temp;
 				break;
@@ -351,8 +361,8 @@ void* findDir(void* directory) {//give threadArg struct with root directory, and
 FOLLOWING 2 FUNCTIONS ARE FOR MERGE SORT OF OUR FILE LINKED LIST, SORTED BY SMALLEST TOKEN COUNT FIRST
 */
 //recursvie method, returns a sorted LL when given 2
-struct file* mergeLists(struct file* first, struct file* second){
-	struct file* res = NULL;
+struct jsd* mergeLists(struct jsd* first, struct jsd* second){
+	struct jsd* res = NULL;
 	if(first==NULL){
 		return second;
 	}
@@ -369,13 +379,13 @@ struct file* mergeLists(struct file* first, struct file* second){
 	return res;
 }
 
-struct file* sortFiles(struct file* head){
+struct jsd* sortFiles(struct jsd* head){
 	if(head == NULL || head->next == NULL){
 		return head;
 	}
-	struct file* first = head;
-	struct file* second = head;
-	struct file* tail = head;
+	struct jsd* first = head;
+	struct jsd* second = head;
+	struct jsd* tail = head;
 	//get middle of LL
 	while(tail->next!=NULL && tail->next->next!=NULL){
 		tail = tail->next->next;
@@ -436,15 +446,56 @@ int main(int argc, char *argv[]) {
 	}
 	//after return, sort data structure file in order of token count
 	
-	args->head->next = sortFiles(args->head->next);
+	
 
 	struct file* file1 = (struct file*) args->head->next;
 	struct file* file2 = (struct file*) args->head->next->next;
+	struct jsd* head = NULL;
+	struct jsd* cur = NULL;
+	int first = 0;
 
+	//this loop will compute jsd of each pair and store in a new LL
 	while(file1 != NULL) {
 		while(file2 != NULL) {
 			printf(RESET);
-			double result = calculate(file1, file2);
+			int count = 0;
+			double result = calculate(file1, file2, &count);
+
+			if(first == 0){
+				first = 1;
+				head = (struct jsd*) malloc(sizeof(struct jsd));
+				head->f1 = file1->path;
+				head->f2 = file2->path;
+				head->tokCount = count;
+				head->jsd = result;
+				head->next = NULL;
+				cur = head;
+			}else{
+				cur->next = (struct jsd*) malloc(sizeof(struct jsd));
+				cur = cur->next;
+				cur->f1 = file1->path;
+				cur->f2 = file2->path;
+				cur->tokCount = count;
+				cur->jsd = result;
+				cur->next = NULL;
+			}
+				
+			file2 = file2->next;
+		}
+		file1 = file1->next;
+
+		if(file1->next != NULL)
+			file2 = file1->next;
+		else
+			break;
+	}
+	//now sort our new LL by common token coun (least to greatest)
+	head = sortFiles(head);
+
+	//finally traverse the LL and print our values
+		while(head!=NULL){
+			double result = head->jsd;
+			
 			if(result >= 0 && result < 0.1) {
 				printf(RED "%f ", result);
 			} else if(result > 0.1 && result <= 0.15) {
@@ -458,17 +509,10 @@ int main(int argc, char *argv[]) {
 			} else {
 				printf(WHT "%f ", result);
 			}
-			printf(RESET "for \"%s\" and \"%s\"\n", file1->path, file2->path);
-			file2 = file2->next;
+			printf(RESET "for \"%s\" and \"%s\"\n", head->f1, head->f2);
+			head = head->next;
 		}
-		file1 = file1->next;
-
-		if(file1->next != NULL)
-			file2 = file1->next;
-		else
-			break;
-	}
-
+		//no need to free rest of memory for tokens and LL, exit program
     printf(RESET);
     return EXIT_SUCCESS;
 }
