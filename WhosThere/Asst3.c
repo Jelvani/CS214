@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <netdb.h>
 
 int main(int argc, char *argv[]) {
     if(argc != 2) {
@@ -19,18 +21,51 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    //creates server socket
-    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = port;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
 
-    bind(server_socket, (struct sockaddr*) &server_addr, sizeof(server_addr));
+	struct addrinfo hints, *addrList, *addr;
+	memset(&hints,0,sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
 
-    listen(server_socket, 5);
+	if(getaddrinfo(NULL,argv[1],&hints,&addrList) != 0){
+		printf("Error getting addrinfo!\n");
+		return EXIT_FAILURE;
+	}
 
-    int client_socket = accept(server_socket, (struct sockaddr*) &client_addr, (socklen_t*) sizeof(client_addr));
-    //close(server_socket);
 
+
+    //loop through all our configs and exit when first socket creates
+    int fd_sock;
+	for(addr = addrList; addr != NULL; addr = addr->ai_next){
+		if((fd_sock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol))==-1){
+			continue;
+		}
+		//if we get to here, this means we have a socket and we will try to bind it
+		if((bind(fd_sock,addr->ai_addr,addr->ai_addrlen) == 0) && (listen(fd_sock,10) == 0)){
+			break;
+		}
+		//something failed after creating socket, so close it and try another config
+		close(fd_sock);
+	}
+	//check if we finally have a valid socket
+	if(addr==NULL){
+		printf("Error creating socket!\n");
+		return EXIT_FAILURE;
+	}
+	//free LL
+	freeaddrinfo(addrList);
+
+	/*******************************************************/
+	//ABOVE WAS JUST SETUP, NOW WE HAVE A PORT TO ACCEPT
+	//CONNECTIONS ON
+	/*******************************************************/
+	int fd_client;
+
+	//this loops blocks until a connection is accepted and we can begin reading/writing
+	while(fd_client = accept(fd_sock,NULL,NULL)){
+
+	}
+    
     return EXIT_SUCCESS;
 }
