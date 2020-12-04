@@ -6,6 +6,20 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+
+
+
+
+
+
+int getKKJ(char* payload, char* message){//gives a char* and length imlpementing payload into KKJ protocol
+	int length = strlen(payload);
+
+
+	//8 here signifies our required format byte length without payload: REF|##|blahblah|
+	return length + 8;
+}
+
 int main(int argc, char *argv[]) {
     if(argc != 2) {
         printf("ERR: INVALID ARG COUNT\nTo properly run the program, enter a port in valid range to start server.\n");
@@ -64,8 +78,13 @@ int main(int argc, char *argv[]) {
 
 	//this loops blocks until a connection is accepted and we can begin reading/writing
 	while(fd_client = accept(fd_sock,NULL,NULL)){
+		write(fd_client,"test\n",5);
+		close(fd_client);
+		break;
 
 	}
+
+	close(fd_sock);
     
     return EXIT_SUCCESS;
 }
