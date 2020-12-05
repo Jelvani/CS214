@@ -12,12 +12,13 @@
 
 
 
-int getKKJ(char* payload, char* message){//gives a char* and length imlpementing payload into KKJ protocol
-	int length = strlen(payload);
-
-
+char* getKKJ(char* payload, int* length){//returns string with implemented KKJ protocl
+	*length = strlen(payload) +9;
+	char* message = (char*) malloc(*length);
+	sprintf(message,"REG|%d|%s|\n",*length-9,payload);
 	//8 here signifies our required format byte length without payload: REF|##|blahblah|
-	return length + 8;
+	
+	return message;
 }
 
 int main(int argc, char *argv[]) {
@@ -78,7 +79,9 @@ int main(int argc, char *argv[]) {
 
 	//this loops blocks until a connection is accepted and we can begin reading/writing
 	while(fd_client = accept(fd_sock,NULL,NULL)){
-		write(fd_client,"test\n",5);
+		int len = 0;
+		char* string = getKKJ("Knock, knock.",&len);
+		write(fd_client,string,len);
 		close(fd_client);
 		break;
 
