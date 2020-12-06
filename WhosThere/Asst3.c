@@ -20,10 +20,10 @@ char* getKKJ(char* payload, int* length){//returns string with implemented KKJ p
 	
 	return message;
 }
-char* readMessage(int fd){//reads given size bytes from buffer
+char* readMessage(int fd){//takes in socket file descriptor. parses REG message from client and returns a string of the payload. returns NULL on error
 	int seen = 0;
 	char header[4];
-	char charLen[3];
+	char charLen[10];
 	char byte = 0;
 	char pipe = '0';
 	for(int i =0;i<4;i+=read(fd,&header[i],1)){
@@ -32,22 +32,26 @@ char* readMessage(int fd){//reads given size bytes from buffer
 	if(strncmp(header,"REG|",4)!=0){//message already doesnt conform to REG|
 		return NULL;
 	}
-
-	for(int i =0;i<2;i+=read(fd,&charLen[i],1)){
-
+	char temp;
+	int tmp = 0;
+	while(1){
+		if(read(fd,&temp,1)==1){
+			if(temp=='|'){
+				charLen[tmp] = '\0';
+				break;
+			}
+			charLen[tmp] = temp;
+			tmp++;
+		}
 	}
-	charLen[2] = '\0';
+			
+	
 	int len = atoi(charLen);
+
 	if(len==0){//not 2 digits
 		return NULL;
 	}
-	for(int i =0;i<1;i+=read(fd,&pipe,1)){
 
-	}
-	if(pipe!='|'){
-		return NULL;
-	}
-	pipe = '0';
 	char* message = (char*) malloc(len+1);
 	for(int i =0;i<len;i+=read(fd,&message[i],1)){
 		if(message[i]=='|'){
