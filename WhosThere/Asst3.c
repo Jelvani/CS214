@@ -10,7 +10,11 @@
 
 
 
-
+enum em{//error messgae enum
+	content,
+	length,
+	format
+};
 
 char* getKKJ(char* payload, int* length){//returns string with implemented KKJ protocl
 	*length = strlen(payload) +KKJ_L+2;
@@ -20,49 +24,62 @@ char* getKKJ(char* payload, int* length){//returns string with implemented KKJ p
 	
 	return message;
 }
+
+
+char* getErr(int stage, enum em error){//will return char array for message to be sent back. stage:0-5
+
+}
 char* readMessage(int fd){//takes in socket file descriptor. parses REG message from client and returns a string of the payload. returns NULL on error
 	int seen = 0;
 	char header[4];
-	char charLen[10];
+	char charLen[10];//length 10 buffer for messgae size
 	char byte = 0;
 	char pipe = '0';
-	for(int i =0;i<4;i+=read(fd,&header[i],1)){
-
+	for(int i =0;i<4;i++){
+		read(fd,&header[i],1);
 	}
 	if(strncmp(header,"REG|",4)!=0){//message already doesnt conform to REG|
 		return NULL;
 	}
 	char temp;
 	int tmp = 0;
-	while(1){
-		if(read(fd,&temp,1)==1){
-			if(temp=='|'){
-				charLen[tmp] = '\0';
-				break;
-			}
-			charLen[tmp] = temp;
-			tmp++;
+	for(int i=0;i<10;i++){
+		if(read(fd,&temp,1)==0){
+			printf("Connectino closed!\n");
+			return NULL;
+		}
+		charLen[i] = temp;
+		if(charLen[i]=='|'){
+			charLen[i]='\0';
+			break;
 		}
 	}
+
 			
 	
 	int len = atoi(charLen);
 
-	if(len==0){//not 2 digits
+	if(len==0){//not valid message length
 		return NULL;
 	}
 
 	char* message = (char*) malloc(len+1);
-	for(int i =0;i<len;i+=read(fd,&message[i],1)){
+	for(int i =0;i<len;i++){
+		if(read(fd,&message[i],1)==0){
+			printf("Connection closed!\n");
+			return NULL;
+
+		}
 		if(message[i]=='|'){
 			printf("INVALID MESSAGE LENGTH!\n");
 			return NULL;
 		}
 	}
 	message[len] = '\0';
-	for(int i =0;i<1;i+=read(fd,&pipe,1)){
 
-	}
+
+	read(fd,&pipe,1);
+
 	if(pipe!='|'){
 		return NULL;
 	}
@@ -129,11 +146,16 @@ int main(int argc, char *argv[]) {
 	//this loops blocks until a connection is accepted and we can begin reading/writing
 	while(fd_client = accept(fd_sock,NULL,NULL)){
 		int len = 0;
+
+		//<Knock, knock
 		char* string = getKKJ("Knock, knock.",&len);
 		write(fd_client,string,len);
+		//<<Who's there?
 		char* m1 = readMessage(fd_client);
-		if(m1!=NULL){
-			printf("%s\n",m1);
+		
+		if(strncmp(m1,"Who's there?",12)!=0){
+			printf("Error M1CT!\n");
+			break;
 		}
 	
 
