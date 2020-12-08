@@ -25,52 +25,76 @@ char* getKKJ(char* payload, int* length){//returns string with implemented KKJ p
 
 char* getErr(int stage, enum em error){//will return char array for message to be sent back. stage:0-5
 	if(stage == 0) {
-		if(error == "MC0T") {
-			return "ERR|message 0 content was not correct|";
-		} else if(error == "M0LN") {
-			return "ERR|message 0 length value was incorrect|";
-		} else if(error == "M0FT") {
-			return "ERR|message 0 format was broken|";
+		switch(error) {
+			case content: //message 0 content was not correct
+				return "ERR|M0CT";
+				break;
+			case length: //message 0 length value was incorrect
+				return "ERR|M0LN";
+				break;
+			case format: //message 0 format was broken
+				return "ERR|M0FT";
+				break;
 		}
 	} else if(stage == 1) {
-		if(error == "MC1T") {
-			return "ERR|message 1 content was not correct|";
-		} else if(error == "M1LN") {
-			return "ERR|message 1 length value was incorrect|";
-		} else if(error == "M1FT") {
-			return "ERR|message 1 format was broken|";
+		switch(error) {
+			case content: //message 1 content was not correct
+				return "ERR|M1CT";
+				break;
+			case length: //message 1 length value was incorrect
+				return "ERR|M1LN";
+				break;
+			case format: //message 1 format was broken
+				return "ERR|M1FT";
+				break;
 		}
 	} else if(stage == 2) {
-		if(error == "MC2T") {
-			return "ERR|message 2 content was not correct|";
-		} else if(error == "M2LN") {
-			return "ERR|message 2 length value was incorrect|";
-		} else if(error == "M2FT") {
-			return "ERR|message 2 format was broken|";
+		switch(error) {
+			case content: //message 2 content was not correct
+				return "ERR|M2CT";
+				break;
+			case length: //message 2 length value was incorrect
+				return "ERR|M2LN";
+				break;
+			case format: //message 2 format was broken
+				return "ERR|M2FT";
+				break;
 		}
 	} else if(stage == 3) {
-		if(error == "MC3T") {
-			return "ERR|message 3 content was not correct|";
-		} else if(error == "M3LN") {
-			return "ERR|message 3 length value was incorrect|";
-		} else if(error == "M3FT") {
-			return "ERR|message 3 format was broken|";
+		switch(error) {
+			case content: //message 3 content was not correct
+				return "ERR|M3CT";
+				break;
+			case length: //message 3 length value was incorrect
+				return "ERR|M3LN";
+				break;
+			case format: //message 3 format was broken
+				return "ERR|M3FT";
+				break;
 		}
 	} else if(stage == 4) {
-		if(error == "MC4T") {
-			return "ERR|message 4 content was not correct|";
-		} else if(error == "M4LN") {
-			return "ERR|message 4 length value was incorrect|";
-		} else if(error == "M4FT") {
-			return "ERR|message 4 format was broken|";
+		switch(error) {
+			case content: //message 4 content was not correct
+				return "ERR|M4CT";
+				break;
+			case length: //message 4 length value was incorrect
+				return "ERR|M4LN";
+				break;
+			case format: //message 4 format was broken
+				return "ERR|M4FT";
+				break;
 		}
 	} else if(stage == 5) {
-		if(error == "MC5T") {
-			return "ERR|message 5 content was not correct|";
-		} else if(error == "M5LN") {
-			return "ERR|message 5 length value was incorrect|";
-		} else if(error == "M5FT") {
-			return "ERR|message 5 format was broken|";
+		switch(error) {
+			case content: //message 5 content was not correct
+				return "ERR|M5CT";
+				break;
+			case length: //message 5 length value was incorrect
+				return "ERR|M5LN";
+				break;
+			case format: //message 5 format was broken
+				return "ERR|M5FT";
+				break;
 		}
 	}
 }
