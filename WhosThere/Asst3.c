@@ -22,81 +22,23 @@ char* getKKJ(char* payload, int* length){//returns string with implemented KKJ p
 	return message;
 }
 
-
 char* getErr(int stage, enum em error){//will return char array for message to be sent back. stage:0-5
-	if(stage == 0) {
-		switch(error) {
-			case content: //message 0 content was not correct
-				return "ERR|M0CT";
-				break;
-			case length: //message 0 length value was incorrect
-				return "ERR|M0LN";
-				break;
-			case format: //message 0 format was broken
-				return "ERR|M0FT";
-				break;
-		}
-	} else if(stage == 1) {
-		switch(error) {
-			case content: //message 1 content was not correct
-				return "ERR|M1CT";
-				break;
-			case length: //message 1 length value was incorrect
-				return "ERR|M1LN";
-				break;
-			case format: //message 1 format was broken
-				return "ERR|M1FT";
-				break;
-		}
-	} else if(stage == 2) {
-		switch(error) {
-			case content: //message 2 content was not correct
-				return "ERR|M2CT";
-				break;
-			case length: //message 2 length value was incorrect
-				return "ERR|M2LN";
-				break;
-			case format: //message 2 format was broken
-				return "ERR|M2FT";
-				break;
-		}
-	} else if(stage == 3) {
-		switch(error) {
-			case content: //message 3 content was not correct
-				return "ERR|M3CT";
-				break;
-			case length: //message 3 length value was incorrect
-				return "ERR|M3LN";
-				break;
-			case format: //message 3 format was broken
-				return "ERR|M3FT";
-				break;
-		}
-	} else if(stage == 4) {
-		switch(error) {
-			case content: //message 4 content was not correct
-				return "ERR|M4CT";
-				break;
-			case length: //message 4 length value was incorrect
-				return "ERR|M4LN";
-				break;
-			case format: //message 4 format was broken
-				return "ERR|M4FT";
-				break;
-		}
-	} else if(stage == 5) {
-		switch(error) {
-			case content: //message 5 content was not correct
-				return "ERR|M5CT";
-				break;
-			case length: //message 5 length value was incorrect
-				return "ERR|M5LN";
-				break;
-			case format: //message 5 format was broken
-				return "ERR|M5FT";
-				break;
-		}
+	char stageNumber[256];
+	char* output;
+	sprintf(stageNumber, "%i", stage);
+	strcat(strcat(output, "ERR|"), stageNumber);
+	switch(error) {
+		case content:
+			strcat(output, "CT\n");
+			break;
+		case length:
+			strcat(output, "LN\n");
+			break;
+		case format:
+			strcat(output, "FT\n");
+			break;
 	}
+	return output;
 }
 
 char* readMessage(int fd){//takes in socket file descriptor. parses REG message from client and returns a string of the payload. returns NULL on error
