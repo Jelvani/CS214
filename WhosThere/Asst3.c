@@ -7,9 +7,6 @@
 #include <netdb.h>
 #define KKJ_L 8
 
-
-
-
 enum em{//error messgae enum
 	content,
 	length,
@@ -27,8 +24,57 @@ char* getKKJ(char* payload, int* length){//returns string with implemented KKJ p
 
 
 char* getErr(int stage, enum em error){//will return char array for message to be sent back. stage:0-5
-
+	if(stage == 0) {
+		if(error == "MC0T") {
+			return "ERR|message 0 content was not correct|";
+		} else if(error == "M0LN") {
+			return "ERR|message 0 length value was incorrect|";
+		} else if(error == "M0FT") {
+			return "ERR|message 0 format was broken|";
+		}
+	} else if(stage == 1) {
+		if(error == "MC1T") {
+			return "ERR|message 1 content was not correct|";
+		} else if(error == "M1LN") {
+			return "ERR|message 1 length value was incorrect|";
+		} else if(error == "M1FT") {
+			return "ERR|message 1 format was broken|";
+		}
+	} else if(stage == 2) {
+		if(error == "MC2T") {
+			return "ERR|message 2 content was not correct|";
+		} else if(error == "M2LN") {
+			return "ERR|message 2 length value was incorrect|";
+		} else if(error == "M2FT") {
+			return "ERR|message 2 format was broken|";
+		}
+	} else if(stage == 3) {
+		if(error == "MC3T") {
+			return "ERR|message 3 content was not correct|";
+		} else if(error == "M3LN") {
+			return "ERR|message 3 length value was incorrect|";
+		} else if(error == "M3FT") {
+			return "ERR|message 3 format was broken|";
+		}
+	} else if(stage == 4) {
+		if(error == "MC4T") {
+			return "ERR|message 4 content was not correct|";
+		} else if(error == "M4LN") {
+			return "ERR|message 4 length value was incorrect|";
+		} else if(error == "M4FT") {
+			return "ERR|message 4 format was broken|";
+		}
+	} else if(stage == 5) {
+		if(error == "MC5T") {
+			return "ERR|message 5 content was not correct|";
+		} else if(error == "M5LN") {
+			return "ERR|message 5 length value was incorrect|";
+		} else if(error == "M5FT") {
+			return "ERR|message 5 format was broken|";
+		}
+	}
 }
+
 char* readMessage(int fd){//takes in socket file descriptor. parses REG message from client and returns a string of the payload. returns NULL on error
 	int seen = 0;
 	char header[4];
@@ -55,8 +101,6 @@ char* readMessage(int fd){//takes in socket file descriptor. parses REG message 
 		}
 	}
 
-			
-	
 	int len = atoi(charLen);
 
 	if(len==0){//not valid message length
