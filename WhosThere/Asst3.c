@@ -88,21 +88,21 @@ void sendError(int fd, enum em type){//take in error type, and returns length an
 void getError(char* message){//checks if client sent back error message. takes in error message (ex. M1CT), prints description of error to stdout
 	if(strcmp(message, "M0CT") == 0)
 		printf("message 0 content was not correct.\n");
-	else if(strcmp(message, "M0LN") == 0)
+	else if(strncmp(message, "M0LN",4) == 0)
 		printf("message 0 length value was incorrect.\n");
-	else if(strcmp(message, "M0FT") == 0)
+	else if(strncmp(message, "M0FT",4) == 0)
 		printf("message 0 format was broken.\n");	
-	else if(strcmp(message, "M2CT") == 0)
+	else if(strncmp(message, "M2CT",4) == 0)
 		printf("message 2 content was not correct.\n");
-	else if(strcmp(message, "M2LN") == 0)
+	else if(strncmp(message, "M2LN",4) == 0)
 		printf("message 2 length value was incorrect.\n");
-	else if(strcmp(message, "M2FT") == 0)
+	else if(strncmp(message, "M2FT",4) == 0)
 		printf("message 2 format was broken.\n");
-	else if(strcmp(message, "M4CT") == 0)
+	else if(strncmp(message, "M4CT",4) == 0)
 		printf("message 4 content was not correct.\n");
-	else if(strcmp(message, "M4LN") == 0)
+	else if(strncmp(message, "M4LN",4) == 0)
 		printf("message 4 length value was incorrect.\n");
-	else if(strcmp(message, "M4FT") == 0)
+	else if(strncmp(message, "M4FT",4) == 0)
 		printf("message 4 format was broken.\n");
 }
 
