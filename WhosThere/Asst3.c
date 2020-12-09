@@ -84,8 +84,26 @@ void sendError(int fd, enum em type){//take in error type, and returns length an
 	sprintf(message,"ERR|%s|",payload);
 	write(fd,message,length);
 }
+
 void getError(char* message){//checks if client sent back error message. takes in error message (ex. M1CT), prints description of error to stdout
-	//implement
+	if(strcmp(message, "M0CT") == 0)
+		printf("message 0 content was not correct.\n");
+	else if(strcmp(message, "M0LN") == 0)
+		printf("message 0 length value was incorrect.\n");
+	else if(strcmp(message, "M0FT") == 0)
+		printf("message 0 format was broken.\n");	
+	else if(strcmp(message, "M2CT") == 0)
+		printf("message 2 content was not correct.\n");
+	else if(strcmp(message, "M2LN") == 0)
+		printf("message 2 length value was incorrect.\n");
+	else if(strcmp(message, "M2FT") == 0)
+		printf(" message 2 format was broken.\n");
+	else if(strcmp(message, "M4CT") == 0)
+		printf("message 4 content was not correct.\n");
+	else if(strcmp(message, "M4LN") == 0)
+		printf("message 4 length value was incorrect.\n");
+	else if(strcmp(message, "M4FT") == 0)
+		printf("message 4 format was broken.\n");
 }
 
 int readMessage(int fd,char** message){//takes in socket file descriptor. parses REG message from client and puts message in 'message' char*. returns 0 on success, -1 for length error, -2 for for format
