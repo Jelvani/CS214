@@ -97,7 +97,7 @@ void getError(char* message){//checks if client sent back error message. takes i
 	else if(strcmp(message, "M2LN") == 0)
 		printf("message 2 length value was incorrect.\n");
 	else if(strcmp(message, "M2FT") == 0)
-		printf(" message 2 format was broken.\n");
+		printf("message 2 format was broken.\n");
 	else if(strcmp(message, "M4CT") == 0)
 		printf("message 4 content was not correct.\n");
 	else if(strcmp(message, "M4LN") == 0)
