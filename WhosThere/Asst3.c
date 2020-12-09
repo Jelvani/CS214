@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
 		}
 		
 		//<Who.
-		string = getKKJ("Who.",&len);
+		string = getKKJ("Doctor.",&len);
 		printf("%s\n",string);
 		write(fd_client,string,len);
 		//<<Who, who?
@@ -265,12 +265,12 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 
-		if(strncmp(*message,"Who, who?",9)!=0){
+		if(strncmp(*message,"Doctor, who?",9)!=0){
 			sendError(fd_client,m3ct);
 			close(fd_client);
 			continue;		}
 		//<I didn't know you were an owl!
-		string = getKKJ("I didn't know you were an owl!",&len);
+		string = getKKJ("Yes.",&len);
 		printf("%s\n",string);
 		write(fd_client,string,len);
 		//<<Ugh.
