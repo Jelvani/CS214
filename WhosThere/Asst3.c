@@ -30,6 +30,12 @@ enum em{//error messgae enum
 	m5ft
 };
 
+enum erType{
+	esuccess,
+	eformat,
+	elength,
+	eclient
+};
 char* getKKJ(char* payload, int* length){//returns string with implemented KKJ protocl
 	int tmp = strlen(payload);
 	tmp = floor(log10((double) tmp))+1;//length of chars for message length
@@ -82,7 +88,7 @@ void getError(char* message){//checks if client sent back error message. takes i
 	//implement
 }
 
-int readMessage(int fd,char** message){//takes in socket file descriptor. parses REG message from client and puts message in 'message' char*. returns 0 on success.
+int readMessage(int fd,char** message){//takes in socket file descriptor. parses REG message from client and puts message in 'message' char*. returns 0 on success, -1 for length error, -2 for for format
 	int seen = 0;
 	char header[4];
 	char charLen[10];//length 10 buffer for message size
@@ -98,7 +104,7 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 		flagErr=1;
 	}else if(strncmp(header,"REG|",4)!=0){//message already doesnt conform to REG|
 		printf("no REG| found!\n");
-		return -1;
+		return eformat;
 	}
 	
 	if(flagErr==0){
@@ -107,7 +113,7 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 		for(int i=0;i<10;i++){
 			if(read(fd,&temp,1)==0){
 				printf("Connection closed!\n");
-				return -1;
+				return elength;
 			}
 			charLen[i] = temp;
 			if(charLen[i]=='|'){
@@ -118,8 +124,8 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 
 		len = atoi(charLen);
 		if(len==0){//not valid message length
-			printf("Null message lenth!\n");
-			return -1;
+			printf("Null message length!\n");
+			return eformat;
 		}
 	}else{
 		len = 4;//set length to error message size
@@ -130,12 +136,12 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 	for(int i =0;i<len;i++){
 		if(read(fd,&message[0][i],1)==0){
 			printf("Connection closed!\n");
-			return -1;
+			return 0;
 
 		}
 		if(message[0][i]=='|'){
 			printf("INVALID MESSAGE LENGTH!\n");
-			return -1;
+			return elength;
 		}
 	}
 	message[0][len] = '\0';
@@ -145,15 +151,15 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 	
 	if(pipe!='|'){
 		printf("Missing closing pipe!\n");
-		return -1;
+		return eformat;
 	}
 	//if we get here, we have received a valid message, so we return success
 	if(flagErr==0){
-		return 0;
+		return esuccess;
 	}else{
-		return -1;
+		return eclient;
 	}
-	return -1;
+	return eclient;
 }
 
 int main(int argc, char *argv[]) {
@@ -222,9 +228,15 @@ int main(int argc, char *argv[]) {
 		//<<Who's there?
 		char* m;
 		char** message = &m;
-
-		if(readMessage(fd_client,message)!=0){
-			getError(*message);
+		int error;
+		if((error = readMessage(fd_client,message))!=esuccess){
+			if(error==elength){
+				sendError(fd_client,m1ln);
+			}else if(error==eformat){
+				sendError(fd_client,m1ft);
+			}else if(error==eclient){
+				getError(*message);
+			}
 			close(fd_client);
 			continue;
 		}
@@ -241,8 +253,14 @@ int main(int argc, char *argv[]) {
 		write(fd_client,string,len);
 		//<<Who, who?
 
-		if(readMessage(fd_client,message)!=0){
-			getError(*message);
+		if(readMessage(fd_client,message)!=esuccess){
+			if(error==elength){
+				sendError(fd_client,m3ln);
+			}else if(error==eformat){
+				sendError(fd_client,m3ft);
+			}else if(error==eclient){
+				getError(*message);
+			}
 			close(fd_client);
 			continue;
 		}
@@ -256,8 +274,14 @@ int main(int argc, char *argv[]) {
 		printf("%s\n",string);
 		write(fd_client,string,len);
 		//<<Ugh.
-		if(readMessage(fd_client,message)!=0){
-			getError(*message);
+		if(readMessage(fd_client,message)!=esuccess){
+			if(error==elength){
+				sendError(fd_client,m5ln);
+			}else if(error==eformat){
+				sendError(fd_client,m5ft);
+			}else if(error==eclient){
+				getError(*message);
+			}
 			close(fd_client);
 			continue;
 		}
