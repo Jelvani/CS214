@@ -5,96 +5,151 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#define KKJ_L 8
+#include <ctype.h>
+#include <math.h>
+#define KKJ_L 6
 
 enum em{//error messgae enum
-	content,
-	length,
-	format
+	m0ct,
+	m0ln,
+	m0ft,
+	m1ct,
+	m1ln,
+	m1ft,
+	m2ct,
+	m2ln,
+	m2ft,
+	m3ct,
+	m3ln,
+	m3ft,
+	m4ct,
+	m4ln,
+	m4ft,
+	m5ct,
+	m5ln,
+	m5ft
 };
 
 char* getKKJ(char* payload, int* length){//returns string with implemented KKJ protocl
-	*length = strlen(payload) +KKJ_L+2;
-	char* message = (char*) malloc(*length)+2;
-	sprintf(message,"REG|%d|%s|\n",*length-KKJ_L,payload);
+	int tmp = strlen(payload);
+	tmp = floor(log10((double) tmp))+1;//length of chars for message length
+	*length = strlen(payload) +KKJ_L+tmp;
+	char* message = (char*) malloc(*length)+1;
+	sprintf(message,"REG|%d|%s|",*length-KKJ_L,payload);
 	//8 here signifies our required format byte length without payload: REG|##|blahblah|
 	
 	return message;
 }
 
-char* getErr(int stage, enum em error){//will return char array for message to be sent back. stage:0-5
-	char stageNumber[256];
-	char* output;
-	sprintf(stageNumber, "%i", stage);
-	strcat(strcat(output, "ERR|"), stageNumber);
-	switch(error) {
-		case content:
-			strcat(output, "CT\n");
+void sendError(int fd, enum em type){//take in error type, and returns length and string pointer
+	int length = 9;
+	char* message = (char*) malloc(length);
+	char payload[5];
+	//not best way, oh well. easier for other end to keep track of
+	switch (type){
+		case m1ct:
+			strcpy(payload,"M1CT");
 			break;
-		case length:
-			strcat(output, "LN\n");
+		case m1ln:
+			strcpy(payload,"M1LN");
 			break;
-		case format:
-			strcat(output, "FT\n");
+		case m1ft:
+			strcpy(payload,"M1FT");
+			break;
+		case m3ct:
+			strcpy(payload,"M3CT");
+			break;
+		case m3ln:
+			strcpy(payload,"M3LN");
+			break;
+		case m3ft:
+			strcpy(payload,"M3FT");
+			break;
+		case m5ct:
+			strcpy(payload,"M5CT");
+			break;
+		case m5ln:
+			strcpy(payload,"M5LN");
+			break;
+		case m5ft:
+			strcpy(payload,"M5FT");
 			break;
 	}
-	return output;
+	sprintf(message,"ERR|%s|",payload);
+	write(fd,message,length);
+}
+void getError(char* message){//checks if client sent back error message. takes in error message (ex. M1CT), prints description of error to stdout
+	//implement
 }
 
-char* readMessage(int fd){//takes in socket file descriptor. parses REG message from client and returns a string of the payload. returns NULL on error
+int readMessage(int fd,char* message){//takes in socket file descriptor. parses REG message from client and puts message in 'message' char*. returns 0 on success.
 	int seen = 0;
 	char header[4];
-	char charLen[10];//length 10 buffer for messgae size
+	char charLen[10];//length 10 buffer for message size
 	char byte = 0;
 	char pipe = '0';
+	int flagErr = 0;
+	int len = 0;
 	for(int i =0;i<4;i++){
 		read(fd,&header[i],1);
 	}
-	if(strncmp(header,"REG|",4)!=0){//message already doesnt conform to REG|
-		return NULL;
+
+	if(strncmp(header,"ERR|",4)==0){//Error message
+		flagErr=1;
+	}else if(strncmp(header,"REG|",4)!=0){//message already doesnt conform to REG|
+		printf("no REG| found!\n");
+		return -1;
 	}
-	char temp;
-	int tmp = 0;
-	for(int i=0;i<10;i++){
-		if(read(fd,&temp,1)==0){
-			printf("Connectino closed!\n");
-			return NULL;
+	if(flagErr==0){
+		char temp;
+		int tmp = 0;
+		for(int i=0;i<10;i++){
+			if(read(fd,&temp,1)==0){
+				printf("Connection closed!\n");
+				return -1;
+			}
+			charLen[i] = temp;
+			if(charLen[i]=='|'){
+				charLen[i]='\0';
+				break;
+			}
 		}
-		charLen[i] = temp;
-		if(charLen[i]=='|'){
-			charLen[i]='\0';
-			break;
+
+		len = atoi(charLen);
+		if(len==0){//not valid message length
+			printf("Null message lenth!\n");
+			return -1;
 		}
+	}else{
+		len = 4;//set length to error message size
 	}
-
-	int len = atoi(charLen);
-
-	if(len==0){//not valid message length
-		return NULL;
-	}
-
-	char* message = (char*) malloc(len+1);
+	message = (char*) malloc(len+1);
 	for(int i =0;i<len;i++){
 		if(read(fd,&message[i],1)==0){
 			printf("Connection closed!\n");
-			return NULL;
+			return -1;
 
 		}
 		if(message[i]=='|'){
 			printf("INVALID MESSAGE LENGTH!\n");
-			return NULL;
+			return -1;
 		}
 	}
 	message[len] = '\0';
-
+	
 
 	read(fd,&pipe,1);
 
 	if(pipe!='|'){
-		return NULL;
+		printf("Missing closing pipe!\n");
+		return -1;
 	}
-	//if we get here, we have received a valid message, so we return the message
-	return message;
+	//if we get here, we have received a valid message, so we return success
+	if(flagErr==0){
+		return 0;
+	}else{
+		return -1;
+	}
 }
 
 int main(int argc, char *argv[]) {
@@ -156,21 +211,55 @@ int main(int argc, char *argv[]) {
 	//this loops blocks until a connection is accepted and we can begin reading/writing
 	while(fd_client = accept(fd_sock,NULL,NULL)){
 		int len = 0;
-
 		//<Knock, knock
 		char* string = getKKJ("Knock, knock.",&len);
+		printf("%s\n",string);
 		write(fd_client,string,len);
 		//<<Who's there?
-		char* m1 = readMessage(fd_client);
+		char* m1;
+
+		if(readMessage(fd_client,m1)!=0){
+			getError(m1);
+			close(fd_client);
+			continue;
+		}
 		
 		if(strncmp(m1,"Who's there?",12)!=0){
 			printf("Error M1CT!\n");
-			break;
+			continue;
 		}
-	
+		//<Who.
+		string = getKKJ("Who.",&len);
+		printf("%s\n",string);
+		write(fd_client,string,len);
+		//<<Who, who?
+
+		if(readMessage(fd_client,m1)!=0){
+			getError(m1);
+			close(fd_client);
+			continue;
+		}
+
+		if(strncmp(m1,"Who, who?",9)!=0){
+			sendError(fd_client,m3ct);
+			close(fd_client);
+			continue;		}
+		//<I didn't know you were an owl!
+		string = getKKJ("I didn't know you were an owl!",&len);
+		printf("%s\n",string);
+		write(fd_client,string,len);
+		//<<Ugh.
+		if(readMessage(fd_client,m1)!=0){
+			getError(m1);
+			close(fd_client);
+			continue;
+		}
+
+		if(ispunct(m1[strlen(m1)-1])==0){//if not a puctuation as last character, error
+			sendError(fd_client,m5ct);
+		}
 
 		close(fd_client);
-		break;
 
 	}
 
