@@ -35,7 +35,7 @@ char* getKKJ(char* payload, int* length){//returns string with implemented KKJ p
 	tmp = floor(log10((double) tmp))+1;//length of chars for message length
 	*length = strlen(payload) +KKJ_L+tmp;
 	char* message = (char*) malloc(*length)+1;
-	sprintf(message,"REG|%d|%s|",*length-KKJ_L,payload);
+	sprintf(message,"REG|%ld|%s|",strlen(payload),payload);
 	//8 here signifies our required format byte length without payload: REG|##|blahblah|
 	
 	return message;
@@ -82,7 +82,7 @@ void getError(char* message){//checks if client sent back error message. takes i
 	//implement
 }
 
-int readMessage(int fd,char* message){//takes in socket file descriptor. parses REG message from client and puts message in 'message' char*. returns 0 on success.
+int readMessage(int fd,char** message){//takes in socket file descriptor. parses REG message from client and puts message in 'message' char*. returns 0 on success.
 	int seen = 0;
 	char header[4];
 	char charLen[10];//length 10 buffer for message size
@@ -100,6 +100,7 @@ int readMessage(int fd,char* message){//takes in socket file descriptor. parses 
 		printf("no REG| found!\n");
 		return -1;
 	}
+	
 	if(flagErr==0){
 		char temp;
 		int tmp = 0;
@@ -123,23 +124,25 @@ int readMessage(int fd,char* message){//takes in socket file descriptor. parses 
 	}else{
 		len = 4;//set length to error message size
 	}
-	message = (char*) malloc(len+1);
+	
+	*message = (char*) malloc(len+1);
+	
 	for(int i =0;i<len;i++){
-		if(read(fd,&message[i],1)==0){
+		if(read(fd,&message[0][i],1)==0){
 			printf("Connection closed!\n");
 			return -1;
 
 		}
-		if(message[i]=='|'){
+		if(message[0][i]=='|'){
 			printf("INVALID MESSAGE LENGTH!\n");
 			return -1;
 		}
 	}
-	message[len] = '\0';
+	message[0][len] = '\0';
 	
 
 	read(fd,&pipe,1);
-
+	
 	if(pipe!='|'){
 		printf("Missing closing pipe!\n");
 		return -1;
@@ -150,6 +153,7 @@ int readMessage(int fd,char* message){//takes in socket file descriptor. parses 
 	}else{
 		return -1;
 	}
+	return -1;
 }
 
 int main(int argc, char *argv[]) {
@@ -216,31 +220,34 @@ int main(int argc, char *argv[]) {
 		printf("%s\n",string);
 		write(fd_client,string,len);
 		//<<Who's there?
-		char* m1;
+		char* m;
+		char** message = &m;
 
-		if(readMessage(fd_client,m1)!=0){
-			getError(m1);
+		if(readMessage(fd_client,message)!=0){
+			getError(*message);
 			close(fd_client);
 			continue;
 		}
 		
-		if(strncmp(m1,"Who's there?",12)!=0){
-			printf("Error M1CT!\n");
-			continue;
+		if(strncmp(*message,"Who's there?",12)!=0){
+			sendError(fd_client,m1ct);
+			close(fd_client);
+			continue;	
 		}
+		
 		//<Who.
 		string = getKKJ("Who.",&len);
 		printf("%s\n",string);
 		write(fd_client,string,len);
 		//<<Who, who?
 
-		if(readMessage(fd_client,m1)!=0){
-			getError(m1);
+		if(readMessage(fd_client,message)!=0){
+			getError(*message);
 			close(fd_client);
 			continue;
 		}
 
-		if(strncmp(m1,"Who, who?",9)!=0){
+		if(strncmp(*message,"Who, who?",9)!=0){
 			sendError(fd_client,m3ct);
 			close(fd_client);
 			continue;		}
@@ -249,13 +256,13 @@ int main(int argc, char *argv[]) {
 		printf("%s\n",string);
 		write(fd_client,string,len);
 		//<<Ugh.
-		if(readMessage(fd_client,m1)!=0){
-			getError(m1);
+		if(readMessage(fd_client,message)!=0){
+			getError(*message);
 			close(fd_client);
 			continue;
 		}
 
-		if(ispunct(m1[strlen(m1)-1])==0){//if not a puctuation as last character, error
+		if(ispunct(*message[strlen(*message)-1])==0){//if not a puctuation as last character, error
 			sendError(fd_client,m5ct);
 		}
 
