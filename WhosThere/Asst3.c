@@ -30,7 +30,7 @@ enum em{//error messgae enum
 	m5ft
 };
 
-enum erType{
+enum erType{//possible message reading types
 	esuccess,
 	eformat,
 	elength,
@@ -81,8 +81,9 @@ void sendError(int fd, enum em type){//take in error type, and returns length an
 			strcpy(payload,"M5FT");
 			break;
 	}
-	sprintf(message,"ERR|%s|",payload);
-	write(fd,message,length);
+	sprintf(message,"ERR|%s|",payload);//insert error format into a string
+	write(fd,message,length);//send over socket
+	free(message);
 }
 
 void getError(char* message){//checks if client sent back error message. takes in error message (ex. M1CT), prints description of error to stdout
@@ -106,7 +107,7 @@ void getError(char* message){//checks if client sent back error message. takes i
 		printf("message 4 format was broken.\n");
 }
 
-int readMessage(int fd,char** message){//takes in socket file descriptor. parses REG message from client and puts message in 'message' char*. returns 0 on success, -1 for length error, -2 for for format
+int readMessage(int fd,char** message){//takes in socket file descriptor. parses REG message from client and puts message in 'message' char*. returns an errType enum value indicating error or success
 	int seen = 0;
 	char header[4];
 	char charLen[10];//length 10 buffer for message size
@@ -125,7 +126,7 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 		return eformat;
 	}
 	
-	if(flagErr==0){
+	if(flagErr==0){//if we have a regular message, then we just continue
 		char temp;
 		int tmp = 0;
 		for(int i=0;i<10;i++){
@@ -145,7 +146,7 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 			printf("Null message length!\n");
 			return eformat;
 		}
-	}else{
+	}else{//this means the  client sent us an error message
 		len = 4;//set length to error message size
 	}
 	
@@ -157,8 +158,7 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 			return 0;
 
 		}
-		if(message[0][i]=='|'){
-			printf("INVALID MESSAGE LENGTH!\n");
+		if(message[0][i]=='|'){//invalid message length, does not correspod to our message length size
 			return elength;
 		}
 	}
@@ -167,8 +167,7 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 
 	read(fd,&pipe,1);
 	
-	if(pipe!='|'){
-		printf("Missing closing pipe!\n");
+	if(pipe!='|'){//missing our closing pipe
 		return eformat;
 	}
 	//if we get here, we have received a valid message, so we return success
@@ -241,13 +240,13 @@ int main(int argc, char *argv[]) {
 		int len = 0;
 		//<Knock, knock
 		char* string = getKKJ("Knock, knock.",&len);
-		printf("%s\n",string);
 		write(fd_client,string,len);
+		//free(string);
 		//<<Who's there?
 		char* m;
 		char** message = &m;
 		int error;
-		if((error = readMessage(fd_client,message))!=esuccess){
+		if((error = readMessage(fd_client,message))!=esuccess){//on error, we send a corresponding error message back
 			if(error==elength){
 				sendError(fd_client,m1ln);
 			}else if(error==eformat){
@@ -255,20 +254,22 @@ int main(int argc, char *argv[]) {
 			}else if(error==eclient){
 				getError(*message);
 			}
+			free(*message);
 			close(fd_client);
 			continue;
 		}
 		
 		if(strncmp(*message,"Who's there?",12)!=0){
 			sendError(fd_client,m1ct);
+			free(*message);
 			close(fd_client);
 			continue;	
 		}
 		
 		//<Who.
 		string = getKKJ("Doctor.",&len);
-		printf("%s\n",string);
 		write(fd_client,string,len);
+		//free(string);
 		//<<Who, who?
 
 		if(readMessage(fd_client,message)!=esuccess){
@@ -279,18 +280,20 @@ int main(int argc, char *argv[]) {
 			}else if(error==eclient){
 				getError(*message);
 			}
+			free(*message);
 			close(fd_client);
 			continue;
 		}
 
 		if(strncmp(*message,"Doctor, who?",9)!=0){
 			sendError(fd_client,m3ct);
+			free(*message);
 			close(fd_client);
 			continue;		}
 		//<I didn't know you were an owl!
 		string = getKKJ("Yes.",&len);
-		printf("%s\n",string);
 		write(fd_client,string,len);
+		//free(string);
 		//<<Ugh.
 		if(readMessage(fd_client,message)!=esuccess){
 			if(error==elength){
@@ -300,14 +303,18 @@ int main(int argc, char *argv[]) {
 			}else if(error==eclient){
 				getError(*message);
 			}
+			free(*message);
 			close(fd_client);
 			continue;
 		}
+		
 
-		if(ispunct(*message[strlen(*message)-1])==0){//if not a puctuation as last character, error
+		if(ispunct(message[0][strlen(*message)-1])==0){//if not a puctuation as last character, error
 			sendError(fd_client,m5ct);
 		}
+		free(*message);
 
+		//the protocol succeeded on both sides, close connection and wait for another client
 		close(fd_client);
 
 	}
