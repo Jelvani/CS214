@@ -1,12 +1,13 @@
+Submitted by Alborz Jelvani, Patrick Nogaj
 The following test cases below were created to test our entire program for 1 run
-REG|12|Who's there?|
-REG|12|Doctor, who?|
-REG|4|uhh.|
+    REG|12|Who's there?|
+    REG|12|Doctor, who?|
+    REG|4|uhh.|
 The next 2 test cases check if our server can properly handle a client error message
-ERR|M2CT|
-ERR|M4FT|
+    ERR|M2CT|
+    ERR|M4FT|
 The last few test cases are to check if our server properly handles incorrect message formats
-REG|100|Who's there?|
-REG|1|Who's there?|
-REG|haha|test|
-REGGG
+    REG|100|Who's there?|
+    REG|1|Who's there?|
+    REG|haha|test|
+    REGGG

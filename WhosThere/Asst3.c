@@ -7,7 +7,7 @@
 #include <netdb.h>
 #include <ctype.h>
 #include <math.h>
-#define KKJ_L 6
+#define KKJ_L 6 //size of kkj chars in REG format
 
 enum em{//error messgae enum
 	m0ct,
