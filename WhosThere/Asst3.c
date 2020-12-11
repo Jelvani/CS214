@@ -122,7 +122,6 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 	if(strncmp(header,"ERR|",4)==0){//Error message
 		flagErr=1;
 	}else if(strncmp(header,"REG|",4)!=0){//message already doesnt conform to REG|
-		printf("no REG| found!\n");
 		return eformat;
 	}
 	
@@ -131,7 +130,6 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 		int tmp = 0;
 		for(int i=0;i<10;i++){
 			if(read(fd,&temp,1)==0){
-				printf("Connection closed!\n");
 				return elength;
 			}
 			charLen[i] = temp;
@@ -143,7 +141,6 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 
 		len = atoi(charLen);
 		if(len==0){//not valid message length
-			printf("Null message length!\n");
 			return eformat;
 		}
 	}else{//this means the  client sent us an error message
@@ -154,7 +151,6 @@ int readMessage(int fd,char** message){//takes in socket file descriptor. parses
 	
 	for(int i =0;i<len;i++){
 		if(read(fd,&message[0][i],1)==0){
-			printf("Connection closed!\n");
 			return 0;
 
 		}
@@ -254,7 +250,7 @@ int main(int argc, char *argv[]) {
 			}else if(error==eclient){
 				getError(*message);
 			}
-			free(*message);
+		
 			close(fd_client);
 			continue;
 		}
@@ -272,7 +268,7 @@ int main(int argc, char *argv[]) {
 		//free(string);
 		//<<Who, who?
 
-		if(readMessage(fd_client,message)!=esuccess){
+		if((error=readMessage(fd_client,message))!=esuccess){
 			if(error==elength){
 				sendError(fd_client,m3ln);
 			}else if(error==eformat){
@@ -295,7 +291,7 @@ int main(int argc, char *argv[]) {
 		write(fd_client,string,len);
 		//free(string);
 		//<<Ugh.
-		if(readMessage(fd_client,message)!=esuccess){
+		if((error=readMessage(fd_client,message))!=esuccess){
 			if(error==elength){
 				sendError(fd_client,m5ln);
 			}else if(error==eformat){
